@@ -1,0 +1,21 @@
+version: 0.0.{build}
+build:
+  verbosity: minimal
+platform:
+- Any CPU
+configuration:
+- Release
+before_build:
+- nuget restore
+after_build:
+- 7z a PhotoTagger.zip PhotoTagger\bin\Release\*.exe PhotoTagger\bin\Release\*.dll
+artifacts:
+- path: PhotoTagger.zip
+  name: Zipped
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: oy9vmWoKGVoCQo1SmAaMu/j8ZEBCMCr7jbkPQ0CdJVwaY0MNwYqi/yqHlH6DIoFG
+  artifact: Zipped
+  on:
+    appveyor_repo_tag: true

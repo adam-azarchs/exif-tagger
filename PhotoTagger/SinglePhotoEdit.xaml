@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="PhotoTagger.SinglePhotoEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:local="clr-namespace:PhotoTagger"
+             mc:Ignorable="d" 
+             Name="Editor"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <local:GpsLocationValueConverter x:Key="GpsLocationValueConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="File name:"
+                   Grid.Row="0" Grid.Column="0" />
+        <TextBlock Text="{Binding Photo.FileName,
+                          ElementName=Editor,
+                          Mode=OneWay}"
+                   Grid.Row="0" Grid.Column="1" />
+        <TextBlock Text="Caption:" Grid.Row="1" Grid.Column="0" />
+        <TextBox Text="{Binding
+                        Photo.Title, ElementName=Editor,
+                        Mode=TwoWay,
+                        UpdateSourceTrigger=PropertyChanged}"
+                 SpellCheck.IsEnabled="True"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 Grid.Row="1" Grid.Column="1" />
+        <TextBlock Text="Photographer:"
+                   Grid.Row="2" Grid.Column="0" />
+        <TextBox Text="{Binding Photo.Photographer,
+                        ElementName=Editor,
+                        Mode=TwoWay}"
+                 SpellCheck.IsEnabled="True" MaxLines="1"
+                 Grid.Row="2" Grid.Column="1"  />
+        <TextBlock Text="Location:"
+                   Grid.Row="3" Grid.Column="0" />
+        <TextBox MaxLines="1"
+                 Text="{Binding
+                        Photo.Location,
+                        ElementName=Editor,
+                        Converter={StaticResource GpsLocationValueConverter},
+                        Mode=TwoWay}"
+                 Grid.Row="3" Grid.Column="1" />
+        <TextBlock Text="Date taken:"
+                   Grid.Row="4" Grid.Column="0" />
+        <xctk:DateTimePicker TimeFormat="FullDateTime"
+                             Value="{Binding
+                                     Photo.DateTaken,
+                                     ElementName=Editor,
+                                     Mode=TwoWay}"
+                             Grid.Row="4" Grid.Column="1"
+                             HorizontalContentAlignment="Left"
+                             HorizontalAlignment="Left" />
+    </Grid>
+</UserControl>

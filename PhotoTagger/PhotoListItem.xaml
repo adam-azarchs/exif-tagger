@@ -1,0 +1,37 @@
+﻿<UserControl x:Name="userControl" x:Class="PhotoTagger.PhotoListItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PhotoTagger"
+             mc:Ignorable="d" 
+             d:DesignWidth="150">
+    <UserControl.Resources>
+        <local:PhotoHasChangedToBrushValueConverter x:Key="PhotoHasChangedToBrushValueConverter"/>
+    </UserControl.Resources>
+    <Grid x:Name="grid" Height="48">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="4*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+               Source="{Binding Photo.CurrentDisplayImage,
+                        ElementName=userControl}"
+               SnapsToDevicePixels="True"
+               Width="{Binding ActualHeight, ElementName=grid, Mode=OneWay}"
+        />
+        <TextBlock Grid.Column="1" Grid.Row="0"
+                   Text="{Binding Photo.Title, Mode=OneWay,
+                          ElementName=userControl}"
+                   Foreground="{Binding Photo.IsChanged,
+                                Converter={StaticResource PhotoHasChangedToBrushValueConverter},
+                                ElementName=userControl}" />
+        <TextBlock Grid.Column="1" Grid.Row="1"
+                   Text="{Binding Photo.FileName, Mode=OneWay,
+                          ElementName=userControl}" />
+    </Grid>
+</UserControl>
