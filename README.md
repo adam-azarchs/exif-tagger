@@ -1,5 +1,7 @@
 # PhotoTagger
 
+[![Build status](https://ci.appveyor.com/api/projects/status/3gk3h9f3dl584w3w?svg=true)](https://ci.appveyor.com/project/adam-azarchs/exif-tagger)
+
 This is intended to be a simple tool to edit the interesting parts of jpeg
 photos' [exif metadata](http://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf).
 
