@@ -95,6 +95,16 @@ namespace PhotoTagger {
                 sign);
         }
 
+        public static RationalDegrees FromLongs(uint[] longs, int sign) {
+            return new RationalDegrees(longs[0],
+                                       longs[2],
+                                       longs[4],
+                                       longs[1],
+                                       longs[3],
+                                       longs[5],
+                                       sign);
+        }
+
         public override bool Equals(object obj) {
             if (obj is RationalDegrees other) {
                 return this.Equals(other);

@@ -9,12 +9,9 @@ using System.Windows;
 // associated with an assembly.
 [assembly: AssemblyTitle("Photo Tagger")]
 [assembly: AssemblyDescription("Views and edits EXIF metadata for a set of jpeg images.")]
-[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Adam Azarchs")]
 [assembly: AssemblyProduct("PhotoTagger")]
 [assembly: AssemblyCopyright("Copyright © 2017")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

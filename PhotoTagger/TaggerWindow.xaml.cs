@@ -13,6 +13,8 @@ namespace PhotoTagger {
             InitializeComponent();
         }
 
+        public const int ThumbSize = 48;
+
         private void addImagesEvent(object sender, RoutedEventArgs e) {
             if (sender is Control b) {
                 b.IsEnabled = false;

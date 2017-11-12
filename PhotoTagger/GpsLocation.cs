@@ -120,6 +120,14 @@ namespace PhotoTagger {
                 RationalDegrees.FromBytes(latBytes, latSignBytes[0] == South[0] ? -1 : 1),
                 RationalDegrees.FromBytes(lonBytes, lonSignBytes[0] == West[0] ? -1 : 1));
         }
+
+        public static GpsLocation FromLongs(
+            string latSignBytes, uint[] latBytes,
+            string lonSignBytes, uint[] lonBytes) {
+            return new GpsLocation(
+                RationalDegrees.FromLongs(latBytes, latSignBytes[0] == South[0] ? -1 : 1),
+                RationalDegrees.FromLongs(lonBytes, lonSignBytes[0] == West[0] ? -1 : 1));
+        }
     }
 
     [ValueConversion(typeof(GpsLocation), typeof(string))]

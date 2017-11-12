@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace PhotoTagger {
     class ImageLoadManager {
@@ -18,26 +22,106 @@ namespace PhotoTagger {
 
         public void EnqueueLoad(Photo photo,
                                 ObservableCollection<Photo> list) {
-            Task.Run(() => loadImage(photo, list));
+            metadataReads.Add(new Tuple<Photo, ObservableCollection<Photo>>(photo, list));
+            makeIOThread();
         }
 
-        private static async void loadImage(Photo photo,
-                                     ObservableCollection<Photo> list) {
+        private BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>> metadataReads =
+            new BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>>();
+
+        private BlockingCollection<Tuple<Photo, Photo.Metadata>> fullsizeReads =
+            new BlockingCollection<Tuple<Photo, Photo.Metadata>>();
+
+        private static readonly int MaxIOThreads = Math.Min(Environment.ProcessorCount, 3);
+        private int runningIOThreads = 0;
+
+        private void makeIOThread() {
+            if (runningIOThreads < MaxIOThreads) {
+                ThreadPool.QueueUserWorkItem(ioWorker);
+            }
+        }
+
+        private async void ioWorker(object state) {
+            while (Interlocked.Increment(ref runningIOThreads) > MaxIOThreads) {
+                if (Interlocked.Decrement(ref runningIOThreads) >= MaxIOThreads) {
+                    return;
+                }
+            }
             try {
-                using (var mem = new MemoryStream()) {
-                    using (var f = File.OpenRead(photo.FileName)) {
-                        await f.CopyToAsync(mem);
+                while (metadataReads.Count > 0 || fullsizeReads.Count > 0) {
+                    if (metadataReads.TryTake(out Tuple<Photo, ObservableCollection<Photo>> meta)) {
+                        await loadMeta(meta.Item1, meta.Item2);
+                    } else if (fullsizeReads.TryTake(out Tuple<Photo, Photo.Metadata> photo)) {
+                        await setImage(photo.Item1, photo.Item2);
                     }
-                    mem.Seek(0, SeekOrigin.Begin);
-                    short orientation;
-                    System.Drawing.Size size;
-                    using (var bmp = Bitmap.FromStream(mem, true, true)) {
-                        await readMetadata(bmp, photo);
-                        orientation = getOrientation(bmp);
-                        size = bmp.Size;
+                }
+            } finally {
+                Interlocked.Decrement(ref runningIOThreads);
+            }
+            if (metadataReads.Count > 0 || fullsizeReads.Count > 0) {
+                ThreadPool.QueueUserWorkItem(ioWorker);
+            }
+        }
+
+        private static string mmapName(string fname) {
+            return fname.Replace('\\', '/') + fname.GetHashCode().ToString();
+        }
+
+        private async Task loadMeta(Photo photo,
+                                    ObservableCollection<Photo> list) {
+            try {
+                var mmap = MemoryMappedFile.CreateFromFile(photo.FileName,
+                    FileMode.Open, mmapName(photo.FileName),
+                    0, MemoryMappedFileAccess.Read);
+                var img = new BitmapImage();
+                Photo.Metadata metadata;
+                DispatcherOperation metaSet;
+                try {
+                    using (var stream = new UnsafeMemoryMapStream(
+        mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
+        FileAccess.Read)) {
+                        var data = stream.Stream;
+                        {
+                            var decoder = JpegBitmapDecoder.Create(data,
+                                BitmapCreateOptions.PreservePixelFormat,
+                                BitmapCacheOption.None);
+                            var frames = decoder.Frames;
+                            if (frames.Count < 1) {
+                                throw new ArgumentException("Image contained no frame data.", nameof(photo));
+                            }
+                            var imgMeta = frames[0].Metadata as BitmapMetadata;
+                            if (imgMeta == null) {
+                                throw new NullReferenceException("Image contained no metadata");
+                            }
+                            metadata = getMetadata(imgMeta);
+                            metadata.Width = frames[0].PixelWidth;
+                            metadata.Height = frames[0].PixelHeight;
+                        }
+
+                        data.Seek(0, SeekOrigin.Begin);
+                        metaSet = photo.Dispatcher.InvokeAsync(() => photo.Set(metadata));
+                        img.BeginInit();
+                        img.StreamSource = data;
+                        img.DecodePixelHeight = 48;
+                        img.CacheOption = BitmapCacheOption.OnLoad;
+                        img.Rotation = orienationToRotation(metadata.Orientation);
+                        img.EndInit();
+                        img.Freeze();
                     }
-                    mem.Seek(0, SeekOrigin.Begin);
-                    await setImage(mem, orientation, size.Width, size.Height, photo);
+                    await metaSet;
+                } catch {
+                    mmap.Dispose();
+                    throw;
+                }
+                if (await photo.Dispatcher.InvokeAsync(() => {
+                    if (photo.Disposed) {
+                        return false;
+                    }
+                    photo.mmap = mmap;
+                    photo.ThumbImage = img;
+                    return true;
+                })) {
+                    fullsizeReads.Add(new Tuple<Photo, Photo.Metadata>(photo, metadata));
                 }
             } catch (Exception ex) {
                 await photo.Dispatcher.InvokeAsync(() => {
@@ -46,10 +130,88 @@ namespace PhotoTagger {
                         photo.FileName, ex),
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
+                    photo.Dispose();
                     list.Remove(photo);
                 });
             }
         }
+
+        private async static Task setImage(Photo photo, Photo.Metadata metadata) {
+            bool locked = false;
+            try {
+                // To avoid dispose colliding with setImage.
+                await photo.loadLock.WaitAsync();
+                locked = true;
+                var data = await photo.Dispatcher.InvokeAsync(
+                    () => (photo.mmap, photo.fullImageStream));
+                if (data.mmap == null) {
+                    // disposed
+                    return;
+                }
+                if (data.fullImageStream == null) {
+                    data.fullImageStream = new UnsafeMemoryMapStream(
+                        data.mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
+                        FileAccess.Read);
+                    await photo.Dispatcher.InvokeAsync(() => {
+                        var p = Interlocked.CompareExchange(ref photo.fullImageStream, data.fullImageStream, null);
+                        if (p != null) {
+                            data.fullImageStream.Dispose();
+                            data.fullImageStream = p;
+                        }
+                    });
+                }
+                var img = new BitmapImage();
+                try {
+                    img.BeginInit();
+                    img.StreamSource = data.fullImageStream.Stream;
+                    makeFullImage(metadata, img);
+                } catch (Exception ex) {
+                    await photo.Dispatcher.InvokeAsync(() => {
+                        MessageBox.Show(ex.ToString(),
+                            string.Format("Error loading {0}\n\n{1}",
+                            photo.FileName, ex),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    });
+                    return;
+                }
+                await photo.Dispatcher.InvokeAsync(() => {
+                    photo.FullImage = img;
+                });
+            } finally {
+                if (locked) {
+                    photo.loadLock.Release();
+                }
+            }
+        }
+
+        private static void makeFullImage(Photo.Metadata metadata, BitmapImage img) {
+            if (metadata.Width > SystemParameters.MaximizedPrimaryScreenWidth ||
+                                metadata.Height > SystemParameters.MaximizedPrimaryScreenHeight) {
+                if (metadata.Width * SystemParameters.MaximizedPrimaryScreenHeight >
+                    metadata.Height * SystemParameters.MaximizedPrimaryScreenWidth) {
+                    img.DecodePixelWidth = (int)SystemParameters.MaximizedPrimaryScreenWidth;
+                } else {
+                    img.DecodePixelHeight = (int)SystemParameters.MaximizedPrimaryScreenHeight;
+                }
+            }
+            img.CacheOption = BitmapCacheOption.None;
+            img.Rotation = orienationToRotation(metadata.Orientation);
+            img.EndInit();
+            img.Freeze();
+        }
+
+        private static Photo.Metadata getMetadata(BitmapMetadata metadata) {
+            return new Photo.Metadata() {
+                Title = metadata.Title,
+                Author = metadata.Author?.FirstOrDefault(),
+                DateTaken = readDateTaken(metadata),
+                Location = readLocation(metadata),
+                Orientation = getOrientation(metadata),
+            };
+        }
+
+        #region EXIF constants
 
         const string ExifDateFormat = "yyyy:MM:dd HH:mm:ss";
 
@@ -60,15 +222,25 @@ namespace PhotoTagger {
         const int TitlePropID = 0x0320;
         const int AuthorPropID = 0x013B;
         const int DateTakenPropID = 0x9003;
+        const string DateTakenQuery = "/app1/ifd/exif/{ushort=36867}";
         const int DateTakenSubsecPropID = 0x9291;
+        const string DateTakenSubsecQuery = "/app1/ifd/exif/{ushort=37521}";
         const int OrientationPropID = 0x0112;
+        const string OrientationQuery = "/app1/ifd/{ushort=274}";
         const int HorizontalResPropID = 0x011A;
         const int VerticalResPropID = 0x011B;
         const int ResolutionUnitPropID = 0x0128;
+
         const int LatitudeRefPropId = 0x0001;
+        const string LatitudeRefQuery = "/app1/ifd/gps/subifd:{ulong=1}";
         const int LatitudePropId = 0x0002;
+        const string LatitudeQuery = "/app1/ifd/gps/subifd:{ulong=2}";
         const int LongitudeRefPropId = 0x0003;
+        const string LongitudeRefQuery = "/app1/ifd/gps/subifd:{ulong=3}";
         const int LongitudePropId = 0x0004;
+        const string LongitudeQuery = "/app1/ifd/gps/subifd:{ulong=4}";
+
+        #endregion
 
         private static string readTitle(Image bmp) {
             return maybeGetString(bmp, TitlePropID, Encoding.UTF8);
@@ -88,6 +260,25 @@ namespace PhotoTagger {
             var subsecString = maybeGetString(bmp, DateTakenSubsecPropID, Encoding.ASCII);
             if (subsecString != null &&
                 double.TryParse("0." + subsecString, out double subsec)) {
+                d = d.AddSeconds(subsec);
+            }
+            return d;
+        }
+
+        private static DateTime? readDateTaken(BitmapMetadata metadata) {
+            var dateString = maybeGetString(metadata, DateTakenQuery);
+            if (string.IsNullOrWhiteSpace(dateString)) {
+                return null;
+            }
+            if (!DateTime.TryParseExact(dateString,
+                ExifDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) {
+                return null;
+            }
+            var subsecString = maybeGetString(metadata, DateTakenSubsecQuery);
+            if (subsecString != null && double.TryParse("0." + subsecString,
+                                                        NumberStyles.Float,
+                                                        CultureInfo.InvariantCulture,
+                                                        out double subsec)) {
                 d = d.AddSeconds(subsec);
             }
             return d;
@@ -114,6 +305,23 @@ namespace PhotoTagger {
                 lonSignProp.Value, lonProp.Value);
         }
 
+        private static GpsLocation readLocation(BitmapMetadata metadata) {
+            var latSignProp = metadata.GetQuery(LatitudeRefQuery) as string;
+            var latProp = metadata.GetQuery(LatitudeQuery) as uint[];
+            var lonSignProp = metadata.GetQuery(LongitudeRefQuery) as string;
+            var lonProp = metadata.GetQuery(LongitudeQuery) as uint[];
+            if (latSignProp == null || latProp == null || lonSignProp == null || lonProp == null) {
+                return null;
+            }
+            if (latSignProp.Length != 1 || lonSignProp.Length != 1 ||
+                latProp.Length != 6 || lonProp.Length != 6) {
+                return null;
+            }
+            return GpsLocation.FromLongs(
+                latSignProp, latProp,
+                lonSignProp, lonProp);
+        }
+
         static string maybeGetString(Image bmp, int propID, Encoding enc) {
             var prop = maybeGetProp(bmp, propID);
             if (prop == null) {
@@ -127,6 +335,10 @@ namespace PhotoTagger {
                 return null;
             }
             return s;
+        }
+
+        static string maybeGetString(BitmapMetadata metadata, string query) {
+            return metadata.GetQuery(query)?.ToString();
         }
 
         static PropertyItem maybeGetProp(Image bmp, int propID) {
@@ -160,30 +372,6 @@ namespace PhotoTagger {
             }
         }
 
-        private async static Task setImage(Stream data,
-            short orienation, int width, int height,
-            Photo photo) {
-            var img = new BitmapImage();
-            img.BeginInit();
-            img.StreamSource = data;
-            if (width > SystemParameters.MaximizedPrimaryScreenWidth ||
-                height > SystemParameters.MaximizedPrimaryScreenHeight) {
-                if (width * SystemParameters.MaximizedPrimaryScreenHeight >
-                    height * SystemParameters.MaximizedPrimaryScreenWidth) {
-                    img.DecodePixelWidth = (int)SystemParameters.MaximizedPrimaryScreenWidth;
-                } else {
-                    img.DecodePixelHeight = (int)SystemParameters.MaximizedPrimaryScreenHeight;
-                }
-            }
-            img.CacheOption = BitmapCacheOption.OnLoad;
-            img.Rotation = orienationToRotation(orienation);
-            img.EndInit();
-            img.Freeze();
-            await photo.Dispatcher.InvokeAsync(() => {
-                photo.CurrentDisplayImage = img;
-            });
-        }
-
         private static Rotation orienationToRotation(short orienation) {
             switch (orienation) {
                 case 1:
@@ -205,6 +393,18 @@ namespace PhotoTagger {
                 if (orientationProp.Type == ExifTypeShort &&
                     orientationProp.Len == 2) {
                     return BitConverter.ToInt16(orientationProp.Value, 0);
+                }
+            } catch (ArgumentException) {
+                return 1;
+            }
+            return 1;
+        }
+
+        private static short getOrientation(BitmapMetadata metadata) {
+            try {
+                var orientationProp = metadata.GetQuery(OrientationQuery) as ushort?;
+                if (orientationProp.HasValue) {
+                    return (short)orientationProp.Value;
                 }
             } catch (ArgumentException) {
                 return 1;

@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:PhotoTagger"
              mc:Ignorable="d" 
              Name="Editor"
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="200" d:DesignWidth="300">
     <UserControl.Resources>
         <local:GpsLocationValueConverter x:Key="GpsLocationValueConverter"/>
     </UserControl.Resources>

@@ -6,12 +6,23 @@
              xmlns:local="clr-namespace:PhotoTagger"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="100">
-    <ListBox ItemsSource="{Binding Photos, ElementName=photoList}"
-             SelectionMode="Extended" Name="ListBox" SelectionChanged="onSelectionChanged">
-        <ListBox.ItemTemplate>
-            <DataTemplate DataType="{x:Type local:Photo}">
-                <local:PhotoListItem Photo="{Binding Mode=OneWay}" />
-            </DataTemplate>
-        </ListBox.ItemTemplate>
-    </ListBox>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock>Image count:</TextBlock>
+            <TextBlock Text="{Binding Photos.Count, ElementName=photoList, Mode=OneWay}"></TextBlock>
+        </StackPanel>
+        <ListBox Grid.Row="1"
+                 ItemsSource="{Binding Photos, ElementName=photoList}"
+                 SelectionMode="Extended" Name="ListBox" SelectionChanged="onSelectionChanged">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:Photo}">
+                    <local:PhotoListItem Photo="{Binding Mode=OneWay}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
 </UserControl>

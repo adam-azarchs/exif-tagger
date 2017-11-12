@@ -30,10 +30,10 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="*" MinWidth="192"/>
+            <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto" MinWidth="256" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
@@ -77,9 +77,13 @@
                 </local:MultiPhotoEdit.Visibility>
             </local:MultiPhotoEdit>
         </StackPanel>
-        <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Left" Width="2" Grid.Column="2" />
+        <GridSplitter x:Name="gridSplitter"
+                      HorizontalAlignment="Left"
+                      Width="2"
+                      Grid.Column="2"
+                      ResizeBehavior="PreviousAndNext" />
         <Image Grid.Column="3" Source="{Binding
-            SelectedPhotos[0].CurrentDisplayImage,
+            SelectedPhotos[0].FullImage,
             ElementName=window}"/>
     </Grid>
 </Window>

@@ -19,7 +19,7 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
-               Source="{Binding Photo.CurrentDisplayImage,
+               Source="{Binding Photo.ThumbImage,
                         ElementName=userControl}"
                SnapsToDevicePixels="True"
                Width="{Binding ActualHeight, ElementName=grid, Mode=OneWay}"
