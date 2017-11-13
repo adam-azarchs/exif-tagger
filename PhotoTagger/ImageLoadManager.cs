@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -16,9 +15,6 @@ using System.Windows.Threading;
 
 namespace PhotoTagger {
     class ImageLoadManager {
-        private static readonly ImageCodecInfo JpegCodec =
-            ImageCodecInfo.GetImageEncoders()
-            .First(enc => enc.MimeType == "image/jpeg");
 
         public void EnqueueLoad(Photo photo,
                                 ObservableCollection<Photo> list) {
@@ -78,8 +74,8 @@ namespace PhotoTagger {
                 DispatcherOperation metaSet;
                 try {
                     using (var stream = new UnsafeMemoryMapStream(
-        mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
-        FileAccess.Read)) {
+                            mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
+                            FileAccess.Read)) {
                         var data = stream.Stream;
                         {
                             var decoder = JpegBitmapDecoder.Create(data,
@@ -211,59 +207,61 @@ namespace PhotoTagger {
             };
         }
 
+        private static async Task setMetadata(Photo photo, InPlaceBitmapMetadataWriter dest) {
+            var source = await photo.Dispatcher.InvokeAsync(() => (
+                photo.Title,
+                photo.Photographer,
+                photo.DateTaken,
+                photo.Location));
+            if (source.Title != null) {
+                dest.Title = source.Title;
+            }
+            if (source.Photographer != null) {
+                dest.Author = new ReadOnlyCollection<string>(new string[] { source.Photographer });
+            }
+            if (source.DateTaken.HasValue) {
+                dest.SetQuery(DateTakenQuery,
+                    source.DateTaken.Value.ToString(ExifDateFormat, CultureInfo.InvariantCulture));
+            }
+            if (source.Location != null) {
+                setLocation(dest, source.Location);
+            }
+        }
+
+        public static async Task Commit(Photo photo) {
+            using (var mmap = MemoryMappedFile.OpenExisting(
+                mmapName(photo.FileName),
+                MemoryMappedFileRights.ReadWrite)) {
+                using (var stream = new UnsafeMemoryMapStream(
+                            mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite),
+                            FileAccess.ReadWrite)) {
+                    var decoder = JpegBitmapDecoder.Create(stream.Stream,
+                                BitmapCreateOptions.PreservePixelFormat,
+                                BitmapCacheOption.OnDemand);
+                    var frames = decoder.Frames;
+                    if (frames.Count < 1) {
+                        throw new ArgumentException("Image contained no frame data.", nameof(photo));
+                    }
+                    var md = frames[0].CreateInPlaceBitmapMetadataWriter();
+                    await setMetadata(photo, md);
+                }
+            }
+        }
+
         #region EXIF constants
 
         const string ExifDateFormat = "yyyy:MM:dd HH:mm:ss";
 
-        const short ExifTypeAscii = 2;
-        const short ExifTypeShort = 3;
-        const short ExifTypeRational = 5;
-
-        const int TitlePropID = 0x0320;
-        const int AuthorPropID = 0x013B;
-        const int DateTakenPropID = 0x9003;
         const string DateTakenQuery = "/app1/ifd/exif/{ushort=36867}";
-        const int DateTakenSubsecPropID = 0x9291;
         const string DateTakenSubsecQuery = "/app1/ifd/exif/{ushort=37521}";
-        const int OrientationPropID = 0x0112;
         const string OrientationQuery = "/app1/ifd/{ushort=274}";
-        const int HorizontalResPropID = 0x011A;
-        const int VerticalResPropID = 0x011B;
-        const int ResolutionUnitPropID = 0x0128;
 
-        const int LatitudeRefPropId = 0x0001;
         const string LatitudeRefQuery = "/app1/ifd/gps/subifd:{ulong=1}";
-        const int LatitudePropId = 0x0002;
         const string LatitudeQuery = "/app1/ifd/gps/subifd:{ulong=2}";
-        const int LongitudeRefPropId = 0x0003;
         const string LongitudeRefQuery = "/app1/ifd/gps/subifd:{ulong=3}";
-        const int LongitudePropId = 0x0004;
         const string LongitudeQuery = "/app1/ifd/gps/subifd:{ulong=4}";
 
         #endregion
-
-        private static string readTitle(Image bmp) {
-            return maybeGetString(bmp, TitlePropID, Encoding.UTF8);
-        }
-
-        private static string readAuthor(Image bmp) {
-            return maybeGetString(bmp, AuthorPropID, Encoding.UTF8);
-        }
-
-        private static DateTime? readDateTaken(Image bmp) {
-            var dateString = maybeGetString(bmp, DateTakenPropID, Encoding.ASCII);
-            if (dateString == null) {
-                return null;
-            }
-            var d = DateTime.ParseExact(dateString,
-                ExifDateFormat, CultureInfo.InvariantCulture);
-            var subsecString = maybeGetString(bmp, DateTakenSubsecPropID, Encoding.ASCII);
-            if (subsecString != null &&
-                double.TryParse("0." + subsecString, out double subsec)) {
-                d = d.AddSeconds(subsec);
-            }
-            return d;
-        }
 
         private static DateTime? readDateTaken(BitmapMetadata metadata) {
             var dateString = maybeGetString(metadata, DateTakenQuery);
@@ -284,92 +282,40 @@ namespace PhotoTagger {
             return d;
         }
 
-        private static GpsLocation readLocation(Image bmp) {
-            var latSignProp = maybeGetProp(bmp, LatitudeRefPropId);
-            var latProp = maybeGetProp(bmp, LatitudePropId);
-            var lonSignProp = maybeGetProp(bmp, LongitudeRefPropId);
-            var lonProp = maybeGetProp(bmp, LongitudePropId);
-            if (latSignProp == null || latProp == null || lonSignProp == null || lonProp == null) {
-                return null;
-            }
-            if (latSignProp.Len != 2 || lonSignProp.Len != 2 ||
-                latProp.Len != 24 || lonProp.Len != 24) {
-                return null;
-            }
-            if (latSignProp.Type != ExifTypeAscii || lonSignProp.Type != ExifTypeAscii ||
-                latProp.Type != ExifTypeRational || lonProp.Type != ExifTypeRational) {
-                return null;
-            }
-            return GpsLocation.FromBytes(
-                latSignProp.Value, latProp.Value,
-                lonSignProp.Value, lonProp.Value);
-        }
-
         private static GpsLocation readLocation(BitmapMetadata metadata) {
             var latSignProp = metadata.GetQuery(LatitudeRefQuery) as string;
-            var latProp = metadata.GetQuery(LatitudeQuery) as uint[];
+            var latProp = metadata.GetQuery(LatitudeQuery) as ulong[];
             var lonSignProp = metadata.GetQuery(LongitudeRefQuery) as string;
-            var lonProp = metadata.GetQuery(LongitudeQuery) as uint[];
+            var lonProp = metadata.GetQuery(LongitudeQuery) as ulong[];
             if (latSignProp == null || latProp == null || lonSignProp == null || lonProp == null) {
                 return null;
             }
             if (latSignProp.Length != 1 || lonSignProp.Length != 1 ||
-                latProp.Length != 6 || lonProp.Length != 6) {
+                latProp.Length != 3 || lonProp.Length != 3) {
                 return null;
             }
-            return GpsLocation.FromLongs(
-                latSignProp, latProp,
-                lonSignProp, lonProp);
+            return GpsLocation.FromBytes(
+                Encoding.ASCII.GetBytes(latSignProp),
+                latProp.SelectMany(BitConverter.GetBytes).ToArray(),
+                Encoding.ASCII.GetBytes(lonSignProp),
+                lonProp.SelectMany(BitConverter.GetBytes).ToArray());
         }
 
-        static string maybeGetString(Image bmp, int propID, Encoding enc) {
-            var prop = maybeGetProp(bmp, propID);
-            if (prop == null) {
-                return null;
+        private static IEnumerable<ulong> bytesToLongs(byte[] from) {
+            for (int i = 0; i < from.Length; i += sizeof(ulong)) {
+                yield return (ulong)BitConverter.ToInt64(from, i);
             }
-            if (prop.Type != ExifTypeAscii || prop.Len < 1) {
-                return null;
-            }
-            var s = enc.GetString(prop.Value, 0, prop.Len - 1);
-            if (string.IsNullOrWhiteSpace(s)) {
-                return null;
-            }
-            return s;
+        }
+
+        private static void setLocation(InPlaceBitmapMetadataWriter dest, GpsLocation loc) {
+            dest.SetQuery(LatitudeRefQuery, Encoding.ASCII.GetString(loc.LatSignBytes));
+            dest.SetQuery(LatitudeQuery, bytesToLongs(loc.LatBytes).ToArray());
+            dest.SetQuery(LongitudeRefQuery, Encoding.ASCII.GetString(loc.LonSignBytes));
+            dest.SetQuery(LongitudeQuery, bytesToLongs(loc.LonBytes).ToArray());
         }
 
         static string maybeGetString(BitmapMetadata metadata, string query) {
             return metadata.GetQuery(query)?.ToString();
-        }
-
-        static PropertyItem maybeGetProp(Image bmp, int propID) {
-            try {
-                return bmp.GetPropertyItem(propID);
-            } catch (ArgumentException) {
-                return null;
-            }
-        }
-
-        private static async Task readMetadata(Image bmp, Photo photo) {
-            var title = readTitle(bmp);
-            var author = readAuthor(bmp);
-            var date = readDateTaken(bmp);
-            var loc = readLocation(bmp);
-            if (title != null || author != null || date.HasValue || loc != null) {
-                await photo.Dispatcher.InvokeAsync(() => {
-                    if (title != null) {
-                        photo.Title = title;
-                    }
-                    if (author != null) {
-                        photo.Photographer = author;
-                    }
-                    if (date.HasValue) {
-                        photo.DateTaken = date.Value;
-                    }
-                    if (loc != null) {
-                        photo.Location = loc;
-                    }
-                });
-            }
         }
 
         private static Rotation orienationToRotation(short orienation) {
@@ -385,19 +331,6 @@ namespace PhotoTagger {
                 default:
                     throw new NotSupportedException("Unsupported exif rotation.");
             }
-        }
-
-        private static short getOrientation(Image bmp) {
-            try {
-                var orientationProp = bmp.GetPropertyItem(OrientationPropID);
-                if (orientationProp.Type == ExifTypeShort &&
-                    orientationProp.Len == 2) {
-                    return BitConverter.ToInt16(orientationProp.Value, 0);
-                }
-            } catch (ArgumentException) {
-                return 1;
-            }
-            return 1;
         }
 
         private static short getOrientation(BitmapMetadata metadata) {

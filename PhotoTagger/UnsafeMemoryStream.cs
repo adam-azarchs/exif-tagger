@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PhotoTagger {
 
     /// <summary>
-    /// Presents a stream accessor from a memory mapped file, without going
-    /// through a SafeBuffer.  SafeBuffer doesn't allow some methods which
-    /// are required for bitmap decoding.
+    /// Presents a stream accessor from a memory mapped file.
     /// </summary>
+    /// <remarks>
+    /// Unlinke <seealso cref="MemoryMappedViewStream"/>, this memory stream
+    /// allows random access.
+    /// </remarks>
     unsafe class UnsafeMemoryMapStream : IDisposable {
 
         private MemoryMappedViewAccessor accessor;
@@ -30,6 +27,7 @@ namespace PhotoTagger {
             if (this.bufferPointer == null) {
                 this.disposedValue = true;
             } else {
+                
                 this.accessor = accessor;
                 this.Stream = new UnmanagedMemoryStream(
                     this.bufferPointer,

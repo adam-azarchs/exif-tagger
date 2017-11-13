@@ -33,7 +33,7 @@
             <ColumnDefinition Width="*" MinWidth="192"/>
             <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" MinWidth="256" />
+            <ColumnDefinition Width="5*" MinWidth="256" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
@@ -49,8 +49,8 @@
                 <Button Content="Commit changes"
                         IsEnabled="{Binding Photos,
                                     Converter={StaticResource AnyChangedToEnabledValueConverter},
-                                    ElementName=window}" />
-                <Button Content="Close all" />
+                                    ElementName=window}" Click="commitEvent" />
+                <Button Content="Close all" Click="closeEvent" />
             </StackPanel>
         </Grid>
         <StackPanel Grid.Column="1">

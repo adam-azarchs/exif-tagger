@@ -1,7 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -68,6 +68,7 @@ namespace PhotoTagger {
             if (from.Location != null) {
                 this.Location = from.Location;
             }
+            this.IsChanged = false;
         }
 
         public string Title {
@@ -168,6 +169,21 @@ namespace PhotoTagger {
                     }
                 }
             });
+        }
+
+        public async Task Commit() {
+            if (this.IsChanged) {
+                bool locked = false;
+                try {
+                    await this.loadLock.WaitAsync();
+                    locked = true;
+                    await ImageLoadManager.Commit(this);
+                } finally {
+                    if (locked) {
+                        this.loadLock.Release();
+                    }
+                }
+            }
         }
     }
 }

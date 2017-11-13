@@ -1,6 +1,9 @@
 ﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,7 +11,7 @@ namespace PhotoTagger {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class TaggerWindow : Window {
+    public partial class TaggerWindow : Window, IDisposable {
         public TaggerWindow() {
             InitializeComponent();
         }
@@ -80,6 +83,27 @@ namespace PhotoTagger {
                 loader.EnqueueLoad(photo, this.Photos);
                 this.Photos.Add(photo);
             }
+        }
+
+        private void closeEvent(object sender, RoutedEventArgs e) {
+            this.Dispose();
+        }
+
+        public void Dispose() {
+            while (this.Photos.Count > 0) {
+                int i = this.Photos.Count - 1;
+                var p = this.Photos[i];
+                this.Photos.RemoveAt(i);
+                p.Dispose();
+            }
+        }
+
+        private void commitEvent(object sender, RoutedEventArgs e) {
+            this.commitAll();
+        }
+
+        private async void commitAll() {
+            await Task.WhenAll(this.Photos.Select(p => p.Commit()).ToArray());
         }
     }
 }
