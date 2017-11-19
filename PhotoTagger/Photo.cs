@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Diagnostics.Contracts;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,10 +8,10 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace PhotoTagger {
-    public class Photo : DependencyObject, IDisposable {
+    public class Photo : DependencyObject, INotifyPropertyChanged, IDisposable {
         public Photo(string f) {
             this.FileName = f;
-            this.Title = this.FileBaseName;
+            this.ShortTitle = f;
         }
 
         public BitmapImage FullImage {
@@ -21,7 +23,7 @@ namespace PhotoTagger {
             }
         }
         public static readonly DependencyProperty FullImageProperty =
-            DependencyProperty.Register("FullImage",
+            DependencyProperty.Register(nameof(FullImage),
                 typeof(BitmapImage), typeof(Photo));
 
         public BitmapImage ThumbImage {
@@ -33,7 +35,7 @@ namespace PhotoTagger {
             }
         }
         public static readonly DependencyProperty ThumbImageProperty =
-            DependencyProperty.Register("ThumbImage",
+            DependencyProperty.Register(nameof(ThumbImage),
                 typeof(BitmapImage), typeof(Photo));
 
         public string FileName {
@@ -55,9 +57,16 @@ namespace PhotoTagger {
             public int Height;
         }
 
+        private Metadata setFrom = null;
+        private bool setting = true;
+
         internal void Set(Metadata from) {
+            this.setting = true;
+            this.setFrom = from;
             if (from.Title != null) {
                 this.Title = from.Title;
+            } else {
+                this.ShortTitle = this.FileBaseName;
             }
             if (from.Author != null) {
                 this.Photographer = from.Author;
@@ -68,7 +77,8 @@ namespace PhotoTagger {
             if (from.Location != null) {
                 this.Location = from.Location;
             }
-            this.IsChanged = false;
+            this.setting = false;
+            changed(this, default(DependencyPropertyChangedEventArgs));
         }
 
         public string Title {
@@ -80,8 +90,20 @@ namespace PhotoTagger {
             }
         }
         public static readonly DependencyProperty TitleProperty =
-            DependencyProperty.Register("Title",
+            DependencyProperty.Register(nameof(Title),
                 typeof(string), typeof(Photo), new PropertyMetadata(changed));
+
+        public string ShortTitle {
+            get {
+                return (string)GetValue(ShortTitleProperty);
+            }
+            private set {
+                SetValue(ShortTitleProperty, value);
+            }
+        }
+        public static readonly DependencyProperty ShortTitleProperty =
+            DependencyProperty.Register(nameof(ShortTitle),
+                typeof(string), typeof(Photo));
 
         public string Photographer {
             get {
@@ -92,7 +114,7 @@ namespace PhotoTagger {
             }
         }
         public static readonly DependencyProperty PhotographerProperty =
-            DependencyProperty.Register("Photographer",
+            DependencyProperty.Register(nameof(Photographer),
                 typeof(string), typeof(Photo), new PropertyMetadata(changed));
 
         public DateTime? DateTaken {
@@ -104,7 +126,7 @@ namespace PhotoTagger {
             }
         }
         public static readonly DependencyProperty DateTakenProperty =
-            DependencyProperty.Register("DateTaken",
+            DependencyProperty.Register(nameof(DateTaken),
                 typeof(DateTime?), typeof(Photo), new PropertyMetadata(changed));
 
         public GpsLocation Location {
@@ -116,12 +138,43 @@ namespace PhotoTagger {
             }
         }
         public static readonly DependencyProperty LocationProperty =
-            DependencyProperty.Register("Location",
+            DependencyProperty.Register(nameof(Location),
                 typeof(GpsLocation), typeof(Photo), new PropertyMetadata(changed));
+
+        [Pure]
+        private static string firstLine(string text) {
+            Contract.Requires(text != null);
+            var i = text.IndexOf('\n');
+            if (i >= 0) {
+                return text.Substring(0, i);
+            } else {
+                return text;
+            }
+        }
 
         private static void changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
             if (d is Photo photo) {
-                photo.IsChanged = true;
+                if (e.Property == TitleProperty) {
+                    if (!string.IsNullOrWhiteSpace(photo.Title)) {
+                        photo.ShortTitle = firstLine(photo.Title);
+                    } else {
+                        photo.ShortTitle = photo.FileBaseName;
+                    }
+                }
+                if (photo.setting) {
+                    return;
+                }
+                bool changed = (photo.Title ?? "") != (photo.setFrom?.Title ?? "") ||
+                    (photo.Photographer ?? "") != (photo.setFrom?.Author ?? "") ||
+                    photo.DateTaken != photo.setFrom?.DateTaken ||
+                    photo.Location != photo.setFrom?.Location;
+                if (changed != photo.IsChanged) {
+                    photo.IsChanged = changed;
+                    if (e.Property?.Name != null) {
+                        photo.PropertyChanged?.Invoke(photo, new PropertyChangedEventArgs(e.Property.Name));
+                    }
+                    photo.PropertyChanged?.Invoke(photo, new PropertyChangedEventArgs(IsChangedProperty.Name));
+                }
             }
         }
 
@@ -135,14 +188,19 @@ namespace PhotoTagger {
         }
 
         public static readonly DependencyProperty IsChangedProperty =
-            DependencyProperty.Register("IsChanged",
+            DependencyProperty.Register(nameof(IsChanged),
                 typeof(bool), typeof(Photo), new PropertyMetadata(false));
 
         // Memory map of the source image file.
         internal MemoryMappedFile mmap;
         internal UnsafeMemoryMapStream fullImageStream;
         internal readonly SemaphoreSlim loadLock = new SemaphoreSlim(1, 1);
-        internal bool Disposed { get; private set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        internal bool Disposed {
+            get; private set;
+        }
 
         public void Dispose() {
             this.Disposed = true;

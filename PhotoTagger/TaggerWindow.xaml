@@ -31,7 +31,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="192"/>
-            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="3*" MinWidth="144" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="5*" MinWidth="256" />
         </Grid.ColumnDefinitions>
@@ -46,10 +46,8 @@
             <StackPanel Grid.Row="1">
                 <Button Content="Add images..."
                         Click="addImagesEvent" />
-                <Button Content="Commit changes"
-                        IsEnabled="{Binding Photos,
-                                    Converter={StaticResource AnyChangedToEnabledValueConverter},
-                                    ElementName=window}" Click="commitEvent" />
+                <Button Content="Commit changes" Name="commitButton"
+                        IsEnabled="False" Click="commitEvent" />
                 <Button Content="Close all" Click="closeEvent" />
             </StackPanel>
         </Grid>

@@ -74,6 +74,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Exif.cs" />
     <Compile Include="GpsLocation.cs" />
     <Compile Include="RationalDegrees.cs" />
     <Compile Include="UnsafeMemoryStream.cs" />

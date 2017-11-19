@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.ComponentModel;
 
 namespace PhotoTagger {
     /// <summary>
@@ -14,6 +16,33 @@ namespace PhotoTagger {
     public partial class TaggerWindow : Window, IDisposable {
         public TaggerWindow() {
             InitializeComponent();
+
+            Photos.CollectionChanged += photoCollectionChanged;
+        }
+
+        void photoCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+            if (e.OldItems != null) {
+                foreach (var item in e.OldItems) {
+                    if (item is Photo photo) {
+                        photo.PropertyChanged -= photoChanged;
+                    }
+                }
+            }
+            if (e.NewItems != null) {
+                foreach (var item in e.NewItems) {
+                    if (item is Photo photo) {
+                        photo.PropertyChanged += photoChanged;
+                    }
+                }
+            }
+            if (e.OldItems != null) {
+                // New items are always unchanged to begin.
+                this.commitButton.IsEnabled = this.Photos.Any(p => p.IsChanged);
+            }
+        }
+
+        void photoChanged(object sender, PropertyChangedEventArgs e) {
+            this.commitButton.IsEnabled = this.Photos.Any(p => p.IsChanged);
         }
 
         public const int ThumbSize = 48;
