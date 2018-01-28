@@ -43,6 +43,24 @@ namespace PhotoTagger {
     }
 
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
+    [ValueConversion(typeof(int), typeof(bool))]
+    public class AnyToEnabledValueConverter : IValueConverter {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+            if (value is IReadOnlyList<Photo> photos) {
+                return photos.Count > 0;
+            } else if (value is int count) {
+                return count > 0;
+            } else {
+                return false;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+            throw new NotSupportedException();
+        }
+    }
+
+    [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
     public class AnyChangedToEnabledValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is IReadOnlyList<Photo> photos) {

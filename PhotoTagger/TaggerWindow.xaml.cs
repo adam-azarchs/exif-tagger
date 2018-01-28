@@ -118,6 +118,15 @@ namespace PhotoTagger {
             this.Dispose();
         }
 
+        private void closeSelectedEvent(object sender, RoutedEventArgs e) {
+            while (this.SelectedPhotos.Count > 0) {
+                int i = this.SelectedPhotos.Count - 1;
+                var p = this.SelectedPhotos[i];
+                this.Photos.Remove(p);
+                p.Dispose();
+            }
+        }
+
         public void Dispose() {
             while (this.Photos.Count > 0) {
                 int i = this.Photos.Count - 1;
