@@ -93,4 +93,21 @@ namespace PhotoTagger {
             }
         }
     }
+
+    [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(DateTimeRange?))]
+    public class PhotosToDateRangeValueConverter : IValueConverter {
+        public object Convert(object value, Type targetType,
+            object parameter, CultureInfo culture) {
+            if (value is IReadOnlyList<Photo> photos) {
+                return DateTimeRange.FromList(photos.Select(p => p.DateTaken));
+            } else {
+                return null;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType,
+            object parameter, CultureInfo culture) {
+            throw new NotSupportedException();
+        }
+    }
 }

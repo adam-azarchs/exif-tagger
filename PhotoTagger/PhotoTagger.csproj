@@ -74,8 +74,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DateTimeRange.cs" />
     <Compile Include="Exif.cs" />
     <Compile Include="GpsLocation.cs" />
+    <Compile Include="MultiPhoto.cs" />
+    <Compile Include="MultiValue.cs" />
     <Compile Include="RationalDegrees.cs" />
     <Compile Include="UnsafeMemoryStream.cs" />
     <Compile Include="ValueConverters.cs" />

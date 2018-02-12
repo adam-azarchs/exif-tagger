@@ -10,7 +10,7 @@ namespace PhotoTagger {
     /// loading to saving from or to EXIF metadata.  Immutable once
     /// constructed.
     /// </summary>
-    public class GpsLocation {
+    public class GpsLocation : IEquatable<GpsLocation> {
         private readonly RationalDegrees lat;
         private readonly RationalDegrees lon;
 
@@ -100,7 +100,7 @@ namespace PhotoTagger {
             return lat.ToDouble().ToString(provider) + ", "
                 + lon.ToDouble().ToString(provider);
         }
-        
+
         public double Latitue {
             get {
                 return lat.ToDouble();
@@ -120,12 +120,33 @@ namespace PhotoTagger {
                 RationalDegrees.FromBytes(latBytes, latSignBytes[0] == South[0] ? -1 : 1),
                 RationalDegrees.FromBytes(lonBytes, lonSignBytes[0] == West[0] ? -1 : 1));
         }
+
+        public bool Equals(GpsLocation other) {
+            if (other == null) {
+                return false;
+            } else {
+                return this.lat.Equals(other.lat) &&
+                    this.lon.Equals(other.lon);
+            }
+        }
+
+        public override bool Equals(object obj) {
+            return this.Equals(obj as GpsLocation);
+        }
+
+        public override int GetHashCode() {
+            return lat.GetHashCode() ^ lon.GetHashCode();
+        }
     }
 
     [ValueConversion(typeof(GpsLocation), typeof(string))]
     [ValueConversion(typeof(string), typeof(GpsLocation))]
     public class GpsLocationValueConverter : ValidationRule, IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+            return GpsLocationValueConverter.ConvertAny(value, targetType, parameter, culture);
+        }
+
+        public static object ConvertAny(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is null) {
                 return null;
             }
