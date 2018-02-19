@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.MemoryMappedFiles;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Imaging {
 
     /// <summary>
     /// Presents a stream accessor from a memory mapped file.

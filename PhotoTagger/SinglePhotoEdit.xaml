@@ -4,12 +4,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:local="clr-namespace:PhotoTagger"
+             xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
              mc:Ignorable="d" 
              Name="Editor"
              d:DesignHeight="200" d:DesignWidth="300">
     <UserControl.Resources>
-        <local:GpsLocationValueConverter x:Key="GpsLocationValueConverter"/>
+        <ptwpf:GpsLocationValueConverter x:Key="GpsLocationValueConverter"/>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

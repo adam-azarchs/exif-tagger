@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PhotoTagger.Imaging;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(Visibility))]
     [ValueConversion(typeof(int), typeof(Visibility))]
     public class ElementCountToVisibilityValueConverter : IValueConverter {

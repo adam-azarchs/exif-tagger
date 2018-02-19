@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Imaging {
     static class Exif {
 
         private static string toUniversalNewline(string from) {

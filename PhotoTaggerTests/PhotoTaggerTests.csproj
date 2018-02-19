@@ -65,9 +65,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PhotoTagger\PhotoTagger.csproj">
-      <Project>{1D77E5DB-4B88-427B-956C-2F325E0B6164}</Project>
-      <Name>PhotoTagger</Name>
+    <ProjectReference Include="..\PhotoTagger.Imaging\PhotoTagger.Imaging.csproj">
+      <Project>{2cf46ae4-1f15-4470-8abe-1bbdd7ee42b3}</Project>
+      <Name>PhotoTagger.Imaging</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

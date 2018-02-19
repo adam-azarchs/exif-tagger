@@ -57,7 +57,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
@@ -74,23 +73,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DateTimeRange.cs" />
-    <Compile Include="Exif.cs" />
-    <Compile Include="GpsLocation.cs" />
     <Compile Include="MultiPhoto.cs" />
     <Compile Include="MultiValue.cs" />
-    <Compile Include="RationalDegrees.cs" />
-    <Compile Include="UnsafeMemoryStream.cs" />
-    <Compile Include="ValueConverters.cs" />
     <Page Include="MultiPhotoEdit.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="PhotoList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="PhotoListItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -106,16 +91,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ImageLoadManager.cs" />
     <Compile Include="MultiPhotoEdit.xaml.cs">
       <DependentUpon>MultiPhotoEdit.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Photo.cs" />
-    <Compile Include="PhotoList.xaml.cs">
-      <DependentUpon>PhotoList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="PhotoListItem.xaml.cs">
-      <DependentUpon>PhotoListItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="SinglePhotoEdit.xaml.cs">
       <DependentUpon>SinglePhotoEdit.xaml</DependentUpon>
@@ -163,6 +140,16 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PhotoTagger.Imaging\PhotoTagger.Imaging.csproj">
+      <Project>{2cf46ae4-1f15-4470-8abe-1bbdd7ee42b3}</Project>
+      <Name>PhotoTagger.Imaging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PhotoTagger.Wpf\PhotoTagger.Wpf.csproj">
+      <Project>{4c7b56c1-3f49-44f2-bcf4-c8f823e858d8}</Project>
+      <Name>PhotoTagger.Wpf</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

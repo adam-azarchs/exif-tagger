@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.ComponentModel;
+using PhotoTagger.Imaging;
 
 namespace PhotoTagger {
     /// <summary>

@@ -5,11 +5,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Photo Tagger")]
-[assembly: AssemblyDescription("Views and edits EXIF metadata for a set of jpeg images.")]
+[assembly: AssemblyTitle("PhotoTagger.Wpf")]
+[assembly: AssemblyDescription("WPF value converters and controls for PhotoTagger.")]
 [assembly: AssemblyCompany("Adam Azarchs")]
 [assembly: AssemblyProduct("PhotoTagger")]
-[assembly: AssemblyCopyright("Copyright © 2017")]
+[assembly: AssemblyCopyright("Copyright © 2018")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

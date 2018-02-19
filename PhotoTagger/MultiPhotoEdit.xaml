@@ -5,11 +5,12 @@
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PhotoTagger"
+             xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
              mc:Ignorable="d"
              Name="Editor"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
-        <local:DateTimeRangeIsRangeToVisibilityConverter x:Key="DateTimeRangeIsRangeToVisibilityConverter"/>
+        <ptwpf:DateTimeRangeIsRangeToVisibilityConverter x:Key="DateTimeRangeIsRangeToVisibilityConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:MultiValueConverter x:Key="MultiValueConverter"/>
     </UserControl.Resources>

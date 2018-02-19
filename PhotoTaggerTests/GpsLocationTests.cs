@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PhotoTagger.Imaging;
 
 namespace PhotoTagger.Tests {
     [TestClass()]

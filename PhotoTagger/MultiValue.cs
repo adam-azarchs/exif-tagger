@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PhotoTagger.Imaging;
+using PhotoTagger.Wpf;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;

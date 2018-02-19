@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using PhotoTagger.Imaging;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace PhotoTagger {

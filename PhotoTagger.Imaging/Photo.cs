@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Imaging {
     public class Photo : DependencyObject, INotifyPropertyChanged, IDisposable {
         public Photo(string f) {
             this.FileName = f;
@@ -78,7 +78,7 @@ namespace PhotoTagger {
                 this.Location = from.Location;
             }
             this.setting = false;
-            changed(this, default(DependencyPropertyChangedEventArgs));
+            changed(this, default);
         }
 
         public string Title {

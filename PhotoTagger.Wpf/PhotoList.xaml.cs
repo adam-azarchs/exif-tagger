@@ -1,8 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using PhotoTagger.Imaging;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Wpf {
     /// <summary>
     /// Interaction logic for PhotoList.xaml
     /// </summary>
@@ -10,6 +11,22 @@ namespace PhotoTagger {
         public PhotoList() {
             InitializeComponent();
         }
+
+
+        public SelectionMode SelectionMode {
+            get {
+                return (SelectionMode)GetValue(SelectionModeProperty);
+            }
+            set {
+                SetValue(SelectionModeProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty SelectionModeProperty =
+            DependencyProperty.Register(nameof(SelectionMode), typeof(SelectionMode),
+                typeof(PhotoList),
+                new PropertyMetadata(SelectionMode.Single));
+
 
         public ObservableCollection<Photo> Photos {
             get {

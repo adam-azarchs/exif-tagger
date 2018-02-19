@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Imaging {
     /// <summary>
     /// Represents a rational number of degrees, minutes, and seconds.
     /// </summary>

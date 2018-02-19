@@ -9,8 +9,8 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-namespace PhotoTagger {
-    class ImageLoadManager {
+namespace PhotoTagger.Imaging {
+    public class ImageLoadManager {
 
         public void EnqueueLoad(Photo photo,
                                 ObservableCollection<Photo> list) {

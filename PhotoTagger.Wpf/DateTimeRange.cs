@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PhotoTagger {
+namespace PhotoTagger.Wpf {
     public struct DateTimeRange : IEquatable<DateTimeRange> {
         public DateTimeRange(DateTime low, DateTime high) {
             this.low = low;

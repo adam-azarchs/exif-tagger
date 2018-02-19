@@ -4,13 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:PhotoTagger"
+        xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
         x:Name="window" x:Class="PhotoTagger.TaggerWindow"
         mc:Ignorable="d"
         Title="Photo tagger" >
     <Window.Resources>
-        <local:AnyToEnabledValueConverter x:Key="AnyToEnabledValueConverter"/>
-        <local:ElementCountToVisibilityValueConverter x:Key="ElementCountToVisibilityValueConverter"/>
-        <local:AnyChangedToEnabledValueConverter x:Key="AnyChangedToEnabledValueConverter"/>
+        <ptwpf:AnyToEnabledValueConverter x:Key="AnyToEnabledValueConverter"/>
+        <ptwpf:ElementCountToVisibilityValueConverter x:Key="ElementCountToVisibilityValueConverter"/>
+        <ptwpf:AnyChangedToEnabledValueConverter x:Key="AnyChangedToEnabledValueConverter"/>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Padding" Value="1,1" />
             <Setter Property="Margin" Value="1,1" />
@@ -41,8 +42,9 @@
                 <RowDefinition/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <local:PhotoList Grid.Row="0"
+            <ptwpf:PhotoList Grid.Row="0"
                              x:Name="photoList"
+                             SelectionMode="Extended"
                              Photos="{Binding Photos, ElementName=window}"/>
             <StackPanel Grid.Row="1">
                 <Button Content="Add images..."
