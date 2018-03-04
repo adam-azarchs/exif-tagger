@@ -1,0 +1,152 @@
+﻿<Window x:Class="PhotoCull.PhotoCullWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
+        xmlns:local="clr-namespace:PhotoCull"
+        x:Name="window" mc:Ignorable="d"
+        Title="Photo Cull">
+    <Window.Resources>
+        <ptwpf:AnyToEnabledValueConverter x:Key="AnyToEnabledValueConverter"/>
+        <ptwpf:ElementCountToVisibilityValueConverter x:Key="ElementCountToVisibilityValueConverter"/>
+        <ptwpf:AnyRejectedToEnabledValueConverter x:Key="AnyRejectedToEnabledValueConverter"/>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="1,1" />
+            <Setter Property="Margin" Value="1,1" />
+        </Style>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Padding" Value="1,1" />
+            <Setter Property="Margin" Value="1,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="Padding" Value="2,1" />
+            <Setter Property="Margin" Value="2,2" />
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <ptwpf:PhotoList Grid.Row="0"
+                             x:Name="photoList"
+                             Photos="{Binding Photos, ElementName=window}"/>
+            <StackPanel Grid.Row="1">
+                <Button Content="Add images..."
+                        Click="addImagesEvent" />
+                <Button Content="Delete rejects..."
+                        Name="deleteButton"
+                        IsEnabled="False"
+                        Click="deleteEvent">
+                </Button>
+                <Button Content="Close" Click="closeSelectedEvent"
+                        IsEnabled="{Binding SelectedPhotos.Count,
+                                    Converter={StaticResource AnyToEnabledValueConverter},
+                                    ElementName=window, Mode=OneWay}" />
+                <Button Content="Close all" Click="closeEvent"
+                        IsEnabled="{Binding Photos.Count,
+                                    Converter={StaticResource AnyToEnabledValueConverter},
+                                    ElementName=window}" />
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0"
+                VerticalContentAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                Click="onClickFirst">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0">
+                        <TextBlock.Text>
+                            <Binding ElementName="window"
+                                 Path="Photos[0].ShortTitle"/>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <ptwpf:ImageZoomer Grid.Row="1">
+                        <ptwpf:ImageZoomer.Photo>
+                            <Binding ElementName="window"
+                                 Path="Photos[0]"/>
+                        </ptwpf:ImageZoomer.Photo>
+                        <ptwpf:ImageZoomer.Scale>
+                            <Binding ElementName="secondZoom"
+                                 Path="Scale" Mode="TwoWay"/>
+                        </ptwpf:ImageZoomer.Scale>
+                        <ptwpf:ImageZoomer.ImageX>
+                            <Binding ElementName="secondZoom"
+                                 Path="ImageX" Mode="TwoWay"/>
+                        </ptwpf:ImageZoomer.ImageX>
+                        <ptwpf:ImageZoomer.ImageY>
+                            <Binding ElementName="secondZoom"
+                                 Path="ImageY" Mode="TwoWay"/>
+                        </ptwpf:ImageZoomer.ImageY>
+                    </ptwpf:ImageZoomer>
+                </Grid>
+            </Button>
+            <Button Grid.Row="1" Click="onDistinctFirst">
+                <Button.Content>
+                    Move to next image group
+                </Button.Content>
+                <Button.IsEnabled>
+                    <Binding Path="Photos.Count"
+                             ElementName="window"
+                             Converter="{StaticResource AnyToEnabledValueConverter}"/>
+                </Button.IsEnabled>
+            </Button>
+        </Grid>
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0"
+                VerticalContentAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                Click="onClickSecond">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0">
+                        <TextBlock.Text>
+                            <Binding ElementName="window"
+                                 Path="Photos[1].ShortTitle"/>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <ptwpf:ImageZoomer Grid.Row="1"
+                                   x:Name="secondZoom">
+                        <ptwpf:ImageZoomer.Photo>
+                            <Binding ElementName="window"
+                                 Path="Photos[1]"/>
+                        </ptwpf:ImageZoomer.Photo>
+                    </ptwpf:ImageZoomer>
+                </Grid>
+            </Button>
+            <Button Grid.Row="1" Click="onDistinctSecond">
+                <Button.Content>
+                    Move to next image group
+                </Button.Content>
+                <Button.IsEnabled>
+                    <Binding Path="Photos.Count"
+                             ElementName="window"
+                             Converter="{StaticResource AnyToEnabledValueConverter}"/>
+                </Button.IsEnabled>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

@@ -202,8 +202,11 @@ namespace PhotoTagger.Imaging {
             img.Freeze();
         }
 
-        public static async Task Commit(Photo photo) {
+        public static async Task Commit(Photo photo, string destination = null) {
             var tempFile = photo.FileName + DateTime.Now.Ticks.ToString() + ".tmp";
+            if (destination != null) {
+                tempFile = destination;
+            }
             Photo.Metadata newSource;
             using (var mmap = MemoryMappedFile.OpenExisting(
                 mmapName(photo.FileName),
@@ -251,31 +254,33 @@ namespace PhotoTagger.Imaging {
                     }
                 }
             }
-            var oldFile = tempFile + "2";
-            try {
-                if (File.Exists(photo.FileName) && File.Exists(tempFile)) {
-                    File.Move(photo.FileName, oldFile);
+            if (destination == null) {
+                var oldFile = tempFile + "2";
+                try {
+                    if (File.Exists(photo.FileName) && File.Exists(tempFile)) {
+                        File.Move(photo.FileName, oldFile);
+                    }
+                    File.Move(tempFile, photo.FileName);
+                } catch (Exception ex) {
+                    // Make sure the temp file is deleted.
+                    if (File.Exists(tempFile) && File.Exists(photo.FileName)) {
+                        File.Delete(tempFile);
+                    }
+                    await photo.Dispatcher.InvokeAsync(() => {
+                        MessageBox.Show(ex.ToString(),
+                                string.Format("Error overwriting {0}\n\n{1}",
+                            photo.FileName, ex),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    });
+                    return;
                 }
-                File.Move(tempFile, photo.FileName);
-            } catch (Exception ex) {
-                // Make sure the temp file is deleted.
-                if (File.Exists(tempFile) && File.Exists(photo.FileName)) {
-                    File.Delete(tempFile);
-                }
-                await photo.Dispatcher.InvokeAsync(() => {
-                    MessageBox.Show(ex.ToString(),
-                            string.Format("Error overwriting {0}\n\n{1}",
-                        photo.FileName, ex),
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                });
-                return;
-            }
-            await photo.Dispatcher.InvokeAsync(() => photo.Set(newSource));
+                await photo.Dispatcher.InvokeAsync(() => photo.Set(newSource));
 
-            if (File.Exists(oldFile)) {
-                // Reload the image so we can close the old file.
-                await reloadAndRemove(photo, newSource, oldFile);
+                if (File.Exists(oldFile)) {
+                    // Reload the image so we can close the old file.
+                    await reloadAndRemove(photo, newSource, oldFile);
+                }
             }
         }
 

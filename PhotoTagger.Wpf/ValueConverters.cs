@@ -76,6 +76,46 @@ namespace PhotoTagger.Wpf {
         }
     }
 
+    [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
+    public class AnyRejectedToEnabledValueConverter : IValueConverter {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+            if (value is IReadOnlyList<Photo> photos) {
+                return photos.Any(p => p.MarkedForDeletion);
+            } else {
+                return false;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+            throw new NotSupportedException();
+        }
+    }
+
+    [ValueConversion(typeof(Photo), typeof(TextDecorationCollection))]
+    [ValueConversion(typeof(bool), typeof(TextDecorationCollection))]
+    public class RejectedToStrikethroughValueConverter : IValueConverter {
+        static readonly TextDecorationCollection emptyDeco = new TextDecorationCollection();
+        static readonly TextDecorationCollection strikeDeco = new TextDecorationCollection(
+            new TextDecoration[]{
+                new TextDecoration(
+                    TextDecorationLocation.Strikethrough, new Pen(Brushes.Red, 5),
+                    0, TextDecorationUnit.FontRecommended, TextDecorationUnit.FontRecommended )
+            });
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+            if (value is Photo photo && photo.MarkedForDeletion ||
+                value is bool marked && marked) {
+                return strikeDeco;
+            } else {
+                return emptyDeco;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+            throw new NotSupportedException();
+        }
+    }
+
     [ValueConversion(typeof(bool), typeof(Brush))]
     public class PhotoHasChangedToBrushValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {

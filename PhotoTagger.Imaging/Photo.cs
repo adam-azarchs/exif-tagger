@@ -101,9 +101,26 @@ namespace PhotoTagger.Imaging {
                 SetValue(TitleProperty, value);
             }
         }
+
         public static readonly DependencyProperty TitleProperty =
             DependencyProperty.Register(nameof(Title),
                 typeof(string), typeof(Photo), new PropertyMetadata(changed));
+
+
+        public bool MarkedForDeletion {
+            get {
+                return (bool)GetValue(MarkedForDeletionProperty);
+            }
+            set {
+                SetValue(MarkedForDeletionProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty MarkedForDeletionProperty =
+            DependencyProperty.Register(nameof(MarkedForDeletion), typeof(bool),
+                typeof(Photo),
+                new PropertyMetadata(false));
+
 
         public string ShortTitle {
             get {
@@ -241,13 +258,38 @@ namespace PhotoTagger.Imaging {
             });
         }
 
-        public async Task Commit() {
-            if (this.IsChanged) {
+        public async Task DisposeNow() {
+            this.Disposed = true;
+            this.FullImage = null;
+            this.ThumbImage = null;
+            bool locked = false;
+            try {
+                await this.loadLock.WaitAsync();
+                locked = true;
+                var fullImageStream = Interlocked.Exchange(
+                    ref this.fullImageStream, null);
+                if (fullImageStream != null) {
+                    fullImageStream.Dispose();
+                }
+                var mmap = Interlocked.Exchange(
+                    ref this.mmap, null);
+                if (mmap != null) {
+                    mmap.Dispose();
+                }
+            } finally {
+                if (locked) {
+                    this.loadLock.Release();
+                }
+            }
+        }
+
+        public async Task Commit(string destination = null) {
+            if (this.IsChanged || destination != null) {
                 bool locked = false;
                 try {
                     await this.loadLock.WaitAsync();
                     locked = true;
-                    await ImageLoadManager.Commit(this);
+                    await ImageLoadManager.Commit(this, destination);
                 } finally {
                     if (locked) {
                         this.loadLock.Release();
