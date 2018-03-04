@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoTagger.Imaging", "Phot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoTagger.Wpf", "PhotoTagger.Wpf\PhotoTagger.Wpf.csproj", "{4C7B56C1-3F49-44F2-BCF4-C8F823E858D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoCull", "PhotoCull\PhotoCull.csproj", "{987FB840-505E-4388-9590-413207A9345F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{4C7B56C1-3F49-44F2-BCF4-C8F823E858D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C7B56C1-3F49-44F2-BCF4-C8F823E858D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C7B56C1-3F49-44F2-BCF4-C8F823E858D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{987FB840-505E-4388-9590-413207A9345F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{987FB840-505E-4388-9590-413207A9345F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{987FB840-505E-4388-9590-413207A9345F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{987FB840-505E-4388-9590-413207A9345F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

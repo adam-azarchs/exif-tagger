@@ -19,7 +19,7 @@ namespace PhotoTagger {
         }
 
         public static readonly DependencyProperty PhotoSetProperty =
-            DependencyProperty.Register("PhotoSet",
+            DependencyProperty.Register(nameof(PhotoSet),
                 typeof(ReadOnlyObservableCollection<Photo>),
                 typeof(MultiPhoto),
                 new PropertyMetadata(setChanged));

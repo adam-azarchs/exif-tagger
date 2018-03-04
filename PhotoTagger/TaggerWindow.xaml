@@ -90,8 +90,12 @@
                       Width="2"
                       Grid.Column="2"
                       ResizeBehavior="PreviousAndNext" />
-        <Image Grid.Column="3" Source="{Binding
-            SelectedPhotos[0].FullImage,
-            ElementName=window}"/>
+        <ptwpf:ImageZoomer Grid.Column="3" HandleMouseWheel="True">
+            <ptwpf:ImageZoomer.Photo>
+                <Binding ElementName="window"
+                         Path="SelectedPhotos[0]">
+                </Binding>
+            </ptwpf:ImageZoomer.Photo>
+        </ptwpf:ImageZoomer>
     </Grid>
 </Window>

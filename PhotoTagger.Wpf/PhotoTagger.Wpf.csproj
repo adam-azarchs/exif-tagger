@@ -44,6 +44,9 @@
   <ItemGroup>
     <Compile Include="DateTimeRange.cs" />
     <Compile Include="GpsLocationValueConverter.cs" />
+    <Compile Include="ImageZoomer.xaml.cs">
+      <DependentUpon>ImageZoomer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PhotoList.xaml.cs">
       <DependentUpon>PhotoList.xaml</DependentUpon>
     </Compile>
@@ -80,6 +83,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ImageZoomer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PhotoList.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

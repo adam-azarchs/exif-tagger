@@ -1,0 +1,28 @@
+﻿<Border x:Class="PhotoTagger.Wpf.ImageZoomer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Name="zoom"
+        d:DesignHeight="300" d:DesignWidth="300"
+        ClipToBounds="True"
+        SizeChanged="sizeChanged"
+        MouseMove="onMouseMove" TouchMove="onTouchMove"
+        MouseEnter="setDragStart" TouchDown="onTouchDown"
+        PreviewMouseRightButtonDown="onRightclick">
+    <Image RenderTransformOrigin="0, 0">
+        <Image.Source>
+            <Binding Path="Photo.FullImage"
+                     ElementName="zoom"
+                     Mode="OneWay">
+            </Binding>
+        </Image.Source>
+        <Image.RenderTransform>
+            <Binding Path="ImageTransform"
+                     ElementName="zoom"
+                     Mode="OneWay">
+            </Binding>
+        </Image.RenderTransform>
+    </Image>
+</Border>

@@ -21,7 +21,7 @@ namespace PhotoTagger {
         }
 
         public static readonly DependencyProperty PhotoProperty =
-            DependencyProperty.Register("Photo",
+            DependencyProperty.Register(nameof(Photo),
                 typeof(Photo),
                 typeof(SinglePhotoEdit),
                 new PropertyMetadata(null));

@@ -81,6 +81,18 @@ namespace PhotoTagger.Imaging {
             changed(this, default);
         }
 
+        public int? Width {
+            get {
+                return this.setFrom?.Width;
+            }
+        }
+
+        public int? Height {
+            get {
+                return this.setFrom?.Height;
+            }
+        }
+
         public string Title {
             get {
                 return (string)GetValue(TitleProperty);

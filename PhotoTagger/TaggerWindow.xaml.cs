@@ -89,7 +89,7 @@ namespace PhotoTagger {
         }
 
         public static readonly DependencyProperty PhotosProperty =
-            DependencyProperty.Register("Photos",
+            DependencyProperty.Register(nameof(Photos),
                 typeof(ObservableCollection<Photo>), typeof(TaggerWindow),
                 new PropertyMetadata() {
                     DefaultValue = new ObservableCollection<Photo>()
