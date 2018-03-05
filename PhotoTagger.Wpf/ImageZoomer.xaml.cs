@@ -15,46 +15,44 @@ namespace PhotoTagger.Wpf {
             InitializeComponent();
         }
 
-        public bool HandleMouseWheel {
+        public bool MoveToPan {
             get {
-                return (bool)GetValue(HandleMouseWheelProperty);
+                return (bool)GetValue(MoveToPanProperty);
             }
             set {
-                SetValue(HandleMouseWheelProperty, value);
+                SetValue(MoveToPanProperty, value);
             }
         }
 
-        public static readonly DependencyProperty HandleMouseWheelProperty =
-            DependencyProperty.Register(nameof(HandleMouseWheel), typeof(bool),
+        public static readonly DependencyProperty MoveToPanProperty =
+            DependencyProperty.Register(nameof(MoveToPan), typeof(bool),
                 typeof(ImageZoomer),
-                new PropertyMetadata(false, setHandleMouseWheel));
+                new PropertyMetadata(false, setHandleMouseMove));
 
-        private static void setHandleMouseWheel(
+        private static void setHandleMouseMove(
             DependencyObject d, DependencyPropertyChangedEventArgs e) {
             if (d is ImageZoomer zoom &&
                 e.OldValue is bool oldV &&
                 e.NewValue is bool newV &&
                 oldV != newV) {
-                if (newV) {
-                    zoom.setupMouseWheel();
+                if (!newV) {
+                    zoom.setupDrag();
                 } else {
-                    zoom.teardownMouseWheel();
+                    zoom.teardownDrag();
                 }
             }
         }
 
         #region Mouse handlers
 
-        private void teardownMouseWheel() {
+        private void teardownDrag() {
             this.Cursor = Cursors.Arrow;
-            this.MouseWheel -= onMouseWheel;
             this.MouseLeftButtonDown -= onMouseLeftButtonDown;
             this.MouseLeftButtonUp -= onMouseLeftButtonUp;
         }
 
-        private void setupMouseWheel() {
+        private void setupDrag() {
             this.Cursor = Cursors.Hand;
-            this.MouseWheel += onMouseWheel;
             this.MouseLeftButtonDown += onMouseLeftButtonDown;
             this.MouseLeftButtonUp += onMouseLeftButtonUp;
         }
@@ -98,7 +96,11 @@ namespace PhotoTagger.Wpf {
             if (this.IsMouseCaptured) {
                 this.ImageX -= newPos.X - this.dragStart.X;
                 this.ImageY -= newPos.Y - this.dragStart.Y;
-            } else if (!HandleMouseWheel && this.Scale > 1) {
+            } else if (!MoveToPan && this.Scale > 1) {
+                Size crop = this.RenderSize;
+                Size imgSize = this.DesiredSize;
+                newPos.X -= (crop.Width - imgSize.Width) / 2;
+                newPos.Y -= (crop.Height - imgSize.Height) / 2;
                 double sc = Scale - 1;
                 this.ImageX = newPos.X * sc;
                 this.ImageY = newPos.Y * sc;
@@ -122,6 +124,7 @@ namespace PhotoTagger.Wpf {
                 this.Scale = 1;
             } else if (this.Source != null) {
                 Size crop = this.RenderSize;
+                Size imgSize = this.DesiredSize;
                 var width = this.FullWidth ??
                     (int)Math.Ceiling(this.Source.Width);
                 var height = this.FullHeight ??
@@ -129,8 +132,10 @@ namespace PhotoTagger.Wpf {
                 this.Scale = Math.Max(
                     height / crop.Height,
                     width / crop.Width);
-                var pos = e.GetPosition(this);
                 double sc = Scale - 1;
+                var pos = e.GetPosition(this);
+                pos.X -= (crop.Width - imgSize.Width) / 2;
+                pos.Y -= (crop.Height - imgSize.Height) / 2;
                 this.ImageX = pos.X * sc;
                 this.ImageY = pos.Y * sc;
             }

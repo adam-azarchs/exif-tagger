@@ -10,8 +10,10 @@
         SizeChanged="sizeChanged"
         MouseMove="onMouseMove" TouchMove="onTouchMove"
         MouseEnter="setDragStart" TouchDown="onTouchDown"
+        MouseWheel="onMouseWheel"
         PreviewMouseRightButtonDown="onRightclick">
-    <Image RenderTransformOrigin="0, 0" SnapsToDevicePixels="True">
+    <Image RenderTransformOrigin="0, 0"
+           SnapsToDevicePixels="True" >
         <Image.Source>
             <Binding Path="Photo.FullImage"
                      ElementName="zoom"
