@@ -197,11 +197,11 @@ namespace PhotoCull {
         }
 
         private async void onDistinctFirst(object sender, RoutedEventArgs e) {
-            await distinct(false);
+            await distinct(true);
         }
 
         private async void onDistinctSecond(object sender, RoutedEventArgs e) {
-            await distinct(true);
+            await distinct(false);
         }
 
         private async Task distinct(bool first) {

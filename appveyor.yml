@@ -9,7 +9,7 @@ configuration:
 before_build:
 - nuget restore
 after_build:
-- 7z a PhotoTagger.zip PhotoTagger\bin\Release\*.exe PhotoTagger\bin\Release\*.dll
+- 7z a PhotoTagger.zip PhotoTagger\bin\Release\*.exe PhotoTagger\bin\Release\*.dll PhotoCull\bin\Release\*.exe PhotoCull\bin\Release\*.dll
 artifacts:
 - path: PhotoTagger.zip
   name: Zipped

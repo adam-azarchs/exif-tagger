@@ -77,7 +77,7 @@
                                  Path="Photos[0].ShortTitle"/>
                         </TextBlock.Text>
                     </TextBlock>
-                    <ptwpf:ImageZoomer Grid.Row="1">
+                    <ptwpf:ImageZoomer Grid.Row="1" MoveToPan="True">
                         <ptwpf:ImageZoomer.Photo>
                             <Binding ElementName="window"
                                  Path="Photos[0]"/>
@@ -125,11 +125,11 @@
                     <TextBlock Grid.Row="0">
                         <TextBlock.Text>
                             <Binding ElementName="window"
-                                 Path="Photos[1].ShortTitle"/>
+                                     Path="Photos[1].ShortTitle"/>
                         </TextBlock.Text>
                     </TextBlock>
-                    <ptwpf:ImageZoomer Grid.Row="1"
-                                   x:Name="secondZoom">
+                    <ptwpf:ImageZoomer Grid.Row="1" MoveToPan="True"
+                                       x:Name="secondZoom">
                         <ptwpf:ImageZoomer.Photo>
                             <Binding ElementName="window"
                                  Path="Photos[1]"/>
