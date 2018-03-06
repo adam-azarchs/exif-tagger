@@ -147,8 +147,25 @@ namespace PhotoCull {
         }
 
         private string debugName(string fileName) {
-            return Path.Combine(Settings.Default.DebugDest,
-                Path.GetFileNameWithoutExtension(fileName) + ".jpg");
+            if (Path.IsPathRooted(Settings.Default.DebugDest)) {
+                return Path.Combine(Settings.Default.DebugDest,
+                    Path.GetFileNameWithoutExtension(fileName) + ".jpg");
+            } else {
+                return Path.Combine(Path.GetDirectoryName(fileName),
+                    Settings.Default.DebugDest,
+                    Path.GetFileNameWithoutExtension(fileName) + ".jpg");
+            }
+        }
+
+        private string debugDataName(string fileName) {
+            if (Path.IsPathRooted(Settings.Default.DebugDest)) {
+                return Path.Combine(Settings.Default.DebugDest,
+                    "compare.pbtxt");
+            } else {
+                return Path.Combine(Path.GetDirectoryName(fileName),
+                    Settings.Default.DebugDest,
+                    "compare.pbtxt");
+            }
         }
 
         private async void onClickFirst(object sender, RoutedEventArgs e) {
@@ -183,8 +200,7 @@ namespace PhotoCull {
                 if (!File.Exists(rname)) {
                     await reject.Commit(destination: rname);
                 }
-                File.AppendAllText(Path.Combine(Settings.Default.DebugDest,
-                    "compare.pbtxt"),
+                File.AppendAllText(debugDataName(reject.FileName),
                     $"compared {{\n" +
                     $"  better: \"{Path.GetFileName(gname)}\"\n" +
                     $"  worse: \"{Path.GetFileName(rname)}\"\n" +
@@ -197,11 +213,11 @@ namespace PhotoCull {
         }
 
         private async void onDistinctFirst(object sender, RoutedEventArgs e) {
-            await distinct(true);
+            await distinct(false);
         }
 
         private async void onDistinctSecond(object sender, RoutedEventArgs e) {
-            await distinct(false);
+            await distinct(true);
         }
 
         private async Task distinct(bool first) {
@@ -222,8 +238,7 @@ namespace PhotoCull {
                 if (!File.Exists(nname)) {
                     await move.Commit(destination: nname);
                 }
-                File.AppendAllText(Path.Combine(Settings.Default.DebugDest,
-                    "compare.pbtxt"),
+                File.AppendAllText(debugDataName(move.FileName),
                     $"distinct {{\n" +
                     $"  image: \"{Path.GetFileName(kname)}\"\n" +
                     $"  image: \"{Path.GetFileName(nname)}\"\n" +

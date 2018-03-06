@@ -28,6 +28,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
@@ -57,7 +58,11 @@
                                     ElementName=window}" />
             </StackPanel>
         </Grid>
-        <Grid Grid.Column="1">
+        <GridSplitter HorizontalAlignment="Left"
+                      Width="2"
+                      Grid.Column="1"
+                      ResizeBehavior="PreviousAndNext" />
+        <Grid Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition Height="Auto"/>
@@ -108,7 +113,7 @@
                 </Button.IsEnabled>
             </Button>
         </Grid>
-        <Grid Grid.Column="2">
+        <Grid Grid.Column="3">
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition Height="Auto"/>

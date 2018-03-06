@@ -96,7 +96,7 @@ namespace PhotoTagger.Wpf {
             if (this.IsMouseCaptured) {
                 this.ImageX -= newPos.X - this.dragStart.X;
                 this.ImageY -= newPos.Y - this.dragStart.Y;
-            } else if (!MoveToPan && this.Scale > 1) {
+            } else if (MoveToPan && this.Scale > 1) {
                 Size crop = this.RenderSize;
                 Size imgSize = this.DesiredSize;
                 newPos.X -= (crop.Width - imgSize.Width) / 2;
