@@ -58,5 +58,34 @@ namespace PhotoTagger.Wpf {
                 this.selected.Add(item as Photo);
             }
         }
+
+
+        public object SelectedValue {
+            get {
+                return (object)GetValue(SelectedValueProperty);
+            }
+            set {
+                SetValue(SelectedValueProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty SelectedValueProperty =
+            DependencyProperty.Register(nameof(SelectedValue), typeof(object),
+                typeof(PhotoList));
+
+
+        public double ThumbnailHeight {
+            get {
+                return (double)GetValue(ThumbnailHeightProperty);
+            }
+            set {
+                SetValue(ThumbnailHeightProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty ThumbnailHeightProperty =
+            DependencyProperty.Register(nameof(ThumbnailHeight), typeof(double),
+                typeof(PhotoList),
+                new PropertyMetadata(48.0));
     }
 }

@@ -25,13 +25,25 @@ namespace PhotoCull.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(null)]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string DebugDest {
             get {
                 return ((string)(this["DebugDest"]));
             }
             set {
                 this["DebugDest"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("96")]
+        public int ThumbnailHeight {
+            get {
+                return ((int)(this["ThumbnailHeight"]));
+            }
+            set {
+                this["ThumbnailHeight"] = value;
             }
         }
     }

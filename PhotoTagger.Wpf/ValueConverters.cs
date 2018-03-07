@@ -94,20 +94,25 @@ namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(Photo), typeof(TextDecorationCollection))]
     [ValueConversion(typeof(bool), typeof(TextDecorationCollection))]
     public class RejectedToStrikethroughValueConverter : IValueConverter {
-        static readonly TextDecorationCollection emptyDeco = new TextDecorationCollection();
-        static readonly TextDecorationCollection strikeDeco = new TextDecorationCollection(
+        private static readonly TextDecorationCollection EmptyDeco =
+            new TextDecorationCollection();
+        private static readonly TextDecorationCollection StrikeDeco =
+            new TextDecorationCollection(
             new TextDecoration[]{
                 new TextDecoration(
-                    TextDecorationLocation.Strikethrough, new Pen(Brushes.Red, 5),
-                    0, TextDecorationUnit.FontRecommended, TextDecorationUnit.FontRecommended )
+                    TextDecorationLocation.Strikethrough,
+                    new Pen(Brushes.Red, 5),
+                    0,
+                    TextDecorationUnit.FontRecommended,
+                    TextDecorationUnit.FontRecommended )
             });
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is Photo photo && photo.MarkedForDeletion ||
                 value is bool marked && marked) {
-                return strikeDeco;
+                return StrikeDeco;
             } else {
-                return emptyDeco;
+                return EmptyDeco;
             }
         }
 

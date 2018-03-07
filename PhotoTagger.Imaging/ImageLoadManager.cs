@@ -59,6 +59,10 @@ namespace PhotoTagger.Imaging {
             return fname.Replace('\\', '/') + fname.GetHashCode().ToString();
         }
 
+        public int ThumbnailHeight {
+            get; set;
+        } = 48;
+
         private async Task loadMeta(Photo photo,
                                     ObservableCollection<Photo> list) {
             try {
@@ -101,7 +105,11 @@ namespace PhotoTagger.Imaging {
                         metaSet = photo.Dispatcher.InvokeAsync(() => photo.Set(metadata));
                         img.BeginInit();
                         img.StreamSource = data;
-                        img.DecodePixelHeight = 48;
+                        if (3 * metadata.Width > 2 * metadata.Height) {
+                            img.DecodePixelWidth = 3 * ThumbnailHeight / 2;
+                        } else {
+                            img.DecodePixelHeight = ThumbnailHeight;
+                        }
                         img.CacheOption = BitmapCacheOption.OnLoad;
                         img.Rotation = Exif.OrienationToRotation(metadata.Orientation);
                         img.EndInit();

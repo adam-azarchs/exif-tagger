@@ -6,11 +6,13 @@
         xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
         xmlns:local="clr-namespace:PhotoCull"
         x:Name="window" mc:Ignorable="d"
-        Title="Photo Cull">
+        Title="Photo Cull"
+        AllowDrop="True" Drop="onFilesDrop">
     <Window.Resources>
         <ptwpf:AnyToEnabledValueConverter x:Key="AnyToEnabledValueConverter"/>
         <ptwpf:ElementCountToVisibilityValueConverter x:Key="ElementCountToVisibilityValueConverter"/>
         <ptwpf:AnyRejectedToEnabledValueConverter x:Key="AnyRejectedToEnabledValueConverter"/>
+        <ptwpf:RejectedToStrikethroughValueConverter x:Key="RejectedToStrikethroughValueConverter"/>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Padding" Value="1,1" />
             <Setter Property="Margin" Value="1,1" />
@@ -39,6 +41,8 @@
             </Grid.RowDefinitions>
             <ptwpf:PhotoList Grid.Row="0"
                              x:Name="photoList"
+                             SelectionMode="Multiple"
+                             ThumbnailHeight="{Binding ThumbnailHeight, ElementName=window}"
                              Photos="{Binding Photos, ElementName=window}"/>
             <StackPanel Grid.Row="1">
                 <Button Content="Add images..."
@@ -78,14 +82,40 @@
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0">
                         <TextBlock.Text>
-                            <Binding ElementName="window"
-                                 Path="Photos[0].ShortTitle"/>
+                            <PriorityBinding>
+                                <PriorityBinding.Bindings>
+                                    <Binding ElementName="window"
+                                             Path="SelectedPhotos[0].ShortTitle"/>
+                                    <Binding ElementName="window"
+                                             Path="Photos[0].ShortTitle"/>
+                                </PriorityBinding.Bindings>
+                            </PriorityBinding>
                         </TextBlock.Text>
+                        <TextBlock.TextDecorations>
+                            <PriorityBinding>
+                                <PriorityBinding.Bindings>
+                                    <Binding Path="SelectedPhotos[0].MarkedForDeletion"
+                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                             ElementName="window" />
+                                    <Binding Path="Photos[0].MarkedForDeletion"
+                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                             ElementName="window" />
+                                </PriorityBinding.Bindings>
+                            </PriorityBinding>
+                        </TextBlock.TextDecorations>
                     </TextBlock>
-                    <ptwpf:ImageZoomer Grid.Row="1" MoveToPan="True">
+                    <ptwpf:ImageZoomer Grid.Row="1"
+                                       MoveToPan="True"
+                                       Name="firstZoom">
                         <ptwpf:ImageZoomer.Photo>
-                            <Binding ElementName="window"
-                                 Path="Photos[0]"/>
+                            <PriorityBinding>
+                                <PriorityBinding.Bindings>
+                                    <Binding ElementName="window"
+                                         Path="SelectedPhotos[0]"/>
+                                    <Binding ElementName="window"
+                                         Path="Photos[0]"/>
+                                </PriorityBinding.Bindings>
+                            </PriorityBinding>
                         </ptwpf:ImageZoomer.Photo>
                         <ptwpf:ImageZoomer.Scale>
                             <Binding ElementName="secondZoom"
@@ -129,15 +159,40 @@
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0">
                         <TextBlock.Text>
-                            <Binding ElementName="window"
-                                     Path="Photos[1].ShortTitle"/>
+                            <PriorityBinding>
+                                <PriorityBinding.Bindings>
+                                    <Binding ElementName="window"
+                                             Path="SelectedPhotos[1].ShortTitle"/>
+                                    <Binding ElementName="window"
+                                             Path="Photos[1].ShortTitle"/>
+                                </PriorityBinding.Bindings>
+                            </PriorityBinding>
                         </TextBlock.Text>
+                        <TextBlock.TextDecorations>
+                            <PriorityBinding>
+                                <PriorityBinding.Bindings>
+                                    <Binding Path="SelectedPhotos[1].MarkedForDeletion"
+                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                             ElementName="window" />
+                                    <Binding Path="Photos[1].MarkedForDeletion"
+                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                             ElementName="window" />
+                                </PriorityBinding.Bindings>
+                            </PriorityBinding>
+                        </TextBlock.TextDecorations>
                     </TextBlock>
-                    <ptwpf:ImageZoomer Grid.Row="1" MoveToPan="True"
+                    <ptwpf:ImageZoomer Grid.Row="1"
+                                       MoveToPan="True"
                                        x:Name="secondZoom">
                         <ptwpf:ImageZoomer.Photo>
-                            <Binding ElementName="window"
-                                 Path="Photos[1]"/>
+                            <PriorityBinding>
+                                <PriorityBinding.Bindings>
+                                    <Binding ElementName="window"
+                                         Path="SelectedPhotos[1]"/>
+                                    <Binding ElementName="window"
+                                         Path="Photos[1]"/>
+                                </PriorityBinding.Bindings>
+                            </PriorityBinding>
                         </ptwpf:ImageZoomer.Photo>
                     </ptwpf:ImageZoomer>
                 </Grid>

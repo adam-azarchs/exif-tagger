@@ -41,8 +41,6 @@ namespace PhotoCull {
             }
         }
 
-        public const int ThumbSize = 48;
-
         private void addImagesEvent(object sender, RoutedEventArgs e) {
             if (sender is Control b) {
                 b.IsEnabled = false;
@@ -74,7 +72,15 @@ namespace PhotoCull {
             }
         }
 
-        private readonly ImageLoadManager loader = new ImageLoadManager();
+        private readonly ImageLoadManager loader = new ImageLoadManager() {
+            ThumbnailHeight = Settings.Default.ThumbnailHeight
+        };
+
+        public double ThumbnailHeight {
+            get {
+                return loader.ThumbnailHeight;
+            }
+        }
 
         private void addImages(string[] photos) {
             var photoSet = new HashSet<string>(photos);
@@ -147,14 +153,16 @@ namespace PhotoCull {
         }
 
         private string debugName(string fileName) {
+            string dirname;
             if (Path.IsPathRooted(Settings.Default.DebugDest)) {
-                return Path.Combine(Settings.Default.DebugDest,
-                    Path.GetFileNameWithoutExtension(fileName) + ".jpg");
+                dirname = Settings.Default.DebugDest;
             } else {
-                return Path.Combine(Path.GetDirectoryName(fileName),
-                    Settings.Default.DebugDest,
-                    Path.GetFileNameWithoutExtension(fileName) + ".jpg");
+                dirname = Path.Combine(Path.GetDirectoryName(fileName),
+                    Settings.Default.DebugDest);
             }
+            Directory.CreateDirectory(dirname);
+            return Path.Combine(dirname,
+                Path.GetFileNameWithoutExtension(fileName) + ".jpg");
         }
 
         private string debugDataName(string fileName) {
@@ -186,10 +194,8 @@ namespace PhotoCull {
                 this.deleteButton.IsEnabled = first;
                 return;
             }
-            var goodIndex = first ? 1 : 0;
-            var rejectIndex = 1 - goodIndex;
-            var good = photos[goodIndex];
-            var reject = photos[rejectIndex];
+            var good = first ? secondZoom.Photo : firstZoom.Photo;
+            var reject = first ? firstZoom.Photo : secondZoom.Photo;
             if (debugging()) {
                 Directory.CreateDirectory(Settings.Default.DebugDest);
                 var rname = debugName(reject.FileName);
@@ -206,29 +212,32 @@ namespace PhotoCull {
                     $"  worse: \"{Path.GetFileName(rname)}\"\n" +
                     $"}}\n");
             }
-            photos.Move(rejectIndex, photos.Count - 1);
+            photos.Move(photos.IndexOf(reject), photos.Count - 1);
             reject.MarkedForDeletion = true;
+            var goodIndex = photos.IndexOf(good);
+            if (goodIndex != 0) {
+                photos.Move(goodIndex, 0);
+            }
             good.MarkedForDeletion = false;
             this.deleteButton.IsEnabled = true;
+            this.photoList.SelectedValue = null;
         }
 
         private async void onDistinctFirst(object sender, RoutedEventArgs e) {
-            await distinct(false);
-        }
-
-        private async void onDistinctSecond(object sender, RoutedEventArgs e) {
             await distinct(true);
         }
 
-        private async Task distinct(bool first) {
+        private async void onDistinctSecond(object sender, RoutedEventArgs e) {
+            await distinct(false);
+        }
+
+        private async Task distinct(bool moveFirst) {
             var photos = this.Photos;
             if (photos.Count < 2) {
                 return;
             }
-            var keepIndex = first ? 0 : 1;
-            var newGroupIndex = 1 - keepIndex;
-            var keep = photos[keepIndex];
-            var move = photos[newGroupIndex];
+            var keep = moveFirst ? secondZoom.Photo : firstZoom.Photo;
+            var move = moveFirst ? firstZoom.Photo : secondZoom.Photo;
             if (debugging()) {
                 var kname = debugName(keep.FileName);
                 var nname = debugName(move.FileName);
@@ -244,7 +253,14 @@ namespace PhotoCull {
                     $"  image: \"{Path.GetFileName(nname)}\"\n" +
                     $"}}\n");
             }
+            keep.MarkedForDeletion = false;
+            move.MarkedForDeletion = false;
             if (photos.Count > 2) {
+                var keepIndex = photos.IndexOf(keep);
+                if (keepIndex != 0) {
+                    photos.Move(keepIndex, 0);
+                }
+                var newGroupIndex = photos.IndexOf(move);
                 int i = -1;
                 foreach (var photo in photos) {
                     if (photo.MarkedForDeletion) {
@@ -252,14 +268,24 @@ namespace PhotoCull {
                     }
                     ++i;
                 }
-                if (i >= 2) {
+                if (i != newGroupIndex) {
                     photos.Move(newGroupIndex, i);
                 }
             }
+            this.deleteButton.IsEnabled = photos.Any(p => p.MarkedForDeletion);
+            this.photoList.SelectedValue = null;
         }
 
         private static bool debugging() {
             return !string.IsNullOrWhiteSpace(Settings.Default.DebugDest);
+        }
+
+        private void onFilesDrop(object sender, DragEventArgs e) {
+            var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+            if (files == null || files.Length == 0) {
+                return;
+            }
+            addImages(files);
         }
     }
 }

@@ -32,6 +32,10 @@
                     <local:PhotoListItem Photo="{Binding Mode=OneWay}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
+            <ListBox.SelectedValue>
+                <Binding Path="SelectedValue"
+                         ElementName="photoList" />
+            </ListBox.SelectedValue>
         </ListBox>
     </Grid>
 </UserControl>
