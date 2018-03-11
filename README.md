@@ -1,6 +1,9 @@
-# PhotoTagger
 
 [![Build status](https://ci.appveyor.com/api/projects/status/3gk3h9f3dl584w3w?svg=true)](https://ci.appveyor.com/project/adam-azarchs/exif-tagger)
+
+[Download the latest build](https://ci.appveyor.com/project/adam-azarchs/exif-tagger/build/artifacts)
+
+# PhotoTagger
 
 This is intended to be a simple tool to edit the interesting parts of jpeg
 photos' [exif metadata](http://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf).
@@ -20,3 +23,11 @@ shifting a set of photos all by the same amount of time (for example if one
 forgets to apply daylight savings time to their camera's clock), but it can
 also be valuable for scans of film photos.
 * GPS latitude/longitude.
+
+# PhotoCull
+PhotoCull is a tool for choosing the best images from a set of similar ones.
+It is intended for people who, like me, tend to take potentially dozens of
+pictures of the same thing and hope one of them comes out well in the end.
+It helps the process of picking that "one good one" by allowing you to
+compare them in pairs, side-by-side, until you're down to just the ones you
+want to keep.
