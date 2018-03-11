@@ -17,6 +17,9 @@ namespace PhotoCull {
     public partial class PhotoCullWindow : Window {
         public PhotoCullWindow() {
             InitializeComponent();
+            // Disable downsampling since users will be comparing focus and
+            // other properties at full-resolution detail levels.
+            ImageLoadManager.DownsampleFullImage = false;
         }
 
         public ObservableCollection<Photo> Photos {

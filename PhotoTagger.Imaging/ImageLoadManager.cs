@@ -12,6 +12,13 @@ using System.Windows.Threading;
 namespace PhotoTagger.Imaging {
     public class ImageLoadManager {
 
+        /// <summary>
+        /// Begins loading the image and metadata for the given
+        /// <see cref="Photo"/>.
+        /// </summary>
+        /// <param name="photo">The photo to load.</param>
+        /// <param name="list">If metadata loading fails, the photo is removed
+        /// from this list.</param>
         public void EnqueueLoad(Photo photo,
                                 ObservableCollection<Photo> list) {
             metadataReads.Add(new Tuple<Photo, ObservableCollection<Photo>>(photo, list));
@@ -59,6 +66,9 @@ namespace PhotoTagger.Imaging {
             return fname.Replace('\\', '/') + fname.GetHashCode().ToString();
         }
 
+        /// <summary>
+        /// Gets or sets the pixel height at which thumbnails are loaded.
+        /// </summary>
         public int ThumbnailHeight {
             get; set;
         } = 48;
@@ -194,9 +204,26 @@ namespace PhotoTagger.Imaging {
             }
         }
 
+        /// <summary>
+        /// Gets or sets the value indicating that full images should be
+        /// downsampled to fit the screen.
+        /// </summary>
+        /// <remarks>
+        /// Normally, to conserve memory, <see cref="ImageLoadManager"/> loads
+        /// images at sufficient resolution to display them on the current
+        /// primary display.  If this value is false, then all of the pixels
+        /// are loaded for the full image.  This is preferred if it is likely
+        /// that users will wish to zoom in to images, but will make it likely
+        /// that images will be paged out more frequently.
+        /// </remarks>
+        public static bool DownsampleFullImage {
+            get; set;
+        } = true;
+
         private static void makeFullImage(Photo.Metadata metadata, BitmapImage img) {
-            if (metadata.Width > SystemParameters.MaximizedPrimaryScreenWidth ||
-                                metadata.Height > SystemParameters.MaximizedPrimaryScreenHeight) {
+            if (DownsampleFullImage && (
+                    metadata.Width > SystemParameters.MaximizedPrimaryScreenWidth ||
+                    metadata.Height > SystemParameters.MaximizedPrimaryScreenHeight)) {
                 if (metadata.Width * SystemParameters.MaximizedPrimaryScreenHeight >
                     metadata.Height * SystemParameters.MaximizedPrimaryScreenWidth) {
                     img.DecodePixelWidth = (int)SystemParameters.MaximizedPrimaryScreenWidth;
@@ -210,6 +237,14 @@ namespace PhotoTagger.Imaging {
             img.Freeze();
         }
 
+        /// <summary>
+        /// Saves the given <see cref="Photo"/> to the disk.
+        /// </summary>
+        /// <param name="photo">The photo to save.</param>
+        /// <param name="destination">If non-null, the image is saved to the
+        /// given location rather than in-place, and the Photo is not reloaded.
+        /// </param>
+        /// <returns></returns>
         public static async Task Commit(Photo photo, string destination = null) {
             var tempFile = photo.FileName + DateTime.Now.Ticks.ToString() + ".tmp";
             if (destination != null) {
