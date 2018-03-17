@@ -27,7 +27,6 @@ namespace PhotoTagger.Imaging {
             if (this.bufferPointer == null) {
                 this.disposedValue = true;
             } else {
-                
                 this.accessor = accessor;
                 this.Stream = new UnmanagedMemoryStream(
                     this.bufferPointer,

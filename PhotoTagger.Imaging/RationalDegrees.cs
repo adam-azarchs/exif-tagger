@@ -118,6 +118,14 @@ namespace PhotoTagger.Imaging {
             return this.toRational().Equals(other.toRational());
         }
 
+        public static bool operator ==(RationalDegrees d1, RationalDegrees d2) {
+            return d1.Equals(d2);
+        }
+
+        public static bool operator !=(RationalDegrees d1, RationalDegrees d2) {
+            return !d1.Equals(d2);
+        }
+
         public override int GetHashCode() {
             return this.toRational().GetHashCode();
         }

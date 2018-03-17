@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace PhotoTagger.Imaging {
-    public class ImageLoadManager {
+    public sealed class ImageLoadManager : IDisposable {
 
         /// <summary>
         /// Begins loading the image and metadata for the given
@@ -54,6 +54,8 @@ namespace PhotoTagger.Imaging {
                         await setImage(photo.Item1, photo.Item2, true);
                     }
                 }
+            } catch (ObjectDisposedException) {
+                return;
             } finally {
                 Interlocked.Decrement(ref runningIOThreads);
             }
@@ -76,6 +78,9 @@ namespace PhotoTagger.Imaging {
         private async Task loadMeta(Photo photo,
                                     ObservableCollection<Photo> list) {
             try {
+                if (photo.Disposed) {
+                    return;
+                }
                 var mmap = MemoryMappedFile.CreateFromFile(
                     File.Open(photo.FileName,
                         FileMode.Open,
@@ -95,7 +100,7 @@ namespace PhotoTagger.Imaging {
                             FileAccess.Read)) {
                         var data = stream.Stream;
                         {
-                            var decoder = JpegBitmapDecoder.Create(data,
+                            var decoder = BitmapDecoder.Create(data,
                                 BitmapCreateOptions.PreservePixelFormat,
                                 BitmapCacheOption.None);
                             var frames = decoder.Frames;
@@ -139,6 +144,8 @@ namespace PhotoTagger.Imaging {
                     return true;
                 })) {
                     fullsizeReads.Add(new Tuple<Photo, Photo.Metadata>(photo, metadata));
+                } else {
+                    mmap.Dispose();
                 }
             } catch (Exception ex) {
                 await photo.Dispatcher.InvokeAsync(() => {
@@ -155,11 +162,17 @@ namespace PhotoTagger.Imaging {
 
         private async static Task setImage(Photo photo, Photo.Metadata metadata, bool mustLock) {
             bool locked = false;
+            if (photo.Disposed) {
+                return;
+            }
             try {
                 if (mustLock) {
                     // To avoid dispose colliding with setImage.
                     await photo.loadLock.WaitAsync();
                     locked = true;
+                }
+                if (photo.Disposed) {
+                    return;
                 }
                 var data = await photo.Dispatcher.InvokeAsync(
                     () => (photo.mmap, photo.fullImageStream));
@@ -232,6 +245,7 @@ namespace PhotoTagger.Imaging {
                 }
             }
             img.CacheOption = BitmapCacheOption.None;
+            img.CreateOptions = BitmapCreateOptions.DelayCreation;
             img.Rotation = Exif.OrienationToRotation(metadata.Orientation);
             img.EndInit();
             img.Freeze();
@@ -261,9 +275,9 @@ namespace PhotoTagger.Imaging {
                     Guid format;
                     int width, height;
                     {
-                        var decoder = JpegBitmapDecoder.Create(stream.Stream,
+                        var decoder = BitmapDecoder.Create(stream.Stream,
                                     BitmapCreateOptions.PreservePixelFormat,
-                                    BitmapCacheOption.None) as JpegBitmapDecoder;
+                                    BitmapCacheOption.None);
                         var frames = decoder.Frames;
                         if (frames.Count < 1) {
                             await photo.Dispatcher.InvokeAsync(() => {
@@ -284,7 +298,12 @@ namespace PhotoTagger.Imaging {
                     newSource = await Exif.SetMetadata(photo, md);
                     newSource.Width = width;
                     newSource.Height = height;
-                    var encoder = JpegBitmapEncoder.Create(format);
+                    BitmapEncoder encoder;
+                    if (destination != null) {
+                        encoder = new JpegBitmapEncoder();
+                    } else {
+                        encoder = BitmapEncoder.Create(format);
+                    }
                     encoder.Frames.Add(
                         BitmapFrame.Create(
                             sourceFrame.Clone() as BitmapFrame,
@@ -391,6 +410,14 @@ namespace PhotoTagger.Imaging {
                         MessageBoxImage.Error);
                 });
             }
+        }
+
+        /// <summary>
+        /// Close the object to new loads.
+        /// </summary>
+        public void Dispose() {
+            fullsizeReads.Dispose();
+            metadataReads.Dispose();
         }
     }
 }

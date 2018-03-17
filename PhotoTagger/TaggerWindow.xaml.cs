@@ -14,7 +14,7 @@ namespace PhotoTagger {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class TaggerWindow : Window, IDisposable {
+    public sealed partial class TaggerWindow : Window, IDisposable {
         public TaggerWindow() {
             InitializeComponent();
 

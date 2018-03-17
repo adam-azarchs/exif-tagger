@@ -233,6 +233,7 @@ namespace PhotoTagger.Imaging {
 
         public void Dispose() {
             this.Disposed = true;
+            Thread.MemoryBarrier();
             this.FullImage = null;
             this.ThumbImage = null;
             ThreadPool.QueueUserWorkItem(async _ => {
@@ -255,11 +256,13 @@ namespace PhotoTagger.Imaging {
                         this.loadLock.Release();
                     }
                 }
+                this.loadLock.Dispose();
             });
         }
 
         public async Task DisposeNow() {
             this.Disposed = true;
+            Thread.MemoryBarrier();
             this.FullImage = null;
             this.ThumbImage = null;
             bool locked = false;
@@ -281,6 +284,7 @@ namespace PhotoTagger.Imaging {
                     this.loadLock.Release();
                 }
             }
+            this.loadLock.Dispose();
         }
 
         public async Task Commit(string destination = null) {

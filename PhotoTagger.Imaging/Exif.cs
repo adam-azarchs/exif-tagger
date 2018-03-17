@@ -31,8 +31,8 @@ namespace PhotoTagger.Imaging {
 
         const string TitleQuery = "/app1/ifd/{ushort=270}";
         const string WinTitleQuery = "/app1/ifd/{ushort=40091}";
-        const string XmpTitleQuery = "/xmp/dc:title/x-default";
-        const string XmpDescriptionQuery = "/xmp/dc:description/x-default";
+        const string XmpTitleQuery = "/xmp/dc:title";
+        const string XmpDescriptionQuery = "/xmp/dc:description";
         const string DateTakenQuery = "/app1/ifd/exif/{ushort=36867}";
         const string DateTakenSubsecQuery = "/app1/ifd/exif/{ushort=37521}";
         const string OrientationQuery = "/app1/ifd/{ushort=274}";
@@ -60,23 +60,42 @@ namespace PhotoTagger.Imaging {
             };
         }
 
+        private static string readString(BitmapMetadata metadata, string key) {
+            var md = metadata.GetQuery(key);
+            switch (md) {
+                case string direct:
+                    if (key.StartsWith("/xmp/")) {
+                        return direct;
+                    } else {
+                        return Encoding.UTF8.GetString(Encoding.Default.GetBytes(direct));
+                    }
+                case BitmapMetadata indirect:
+                    foreach (string query in indirect) {
+                        return readString(indirect, key + query);
+                    }
+                    return null;
+                case byte[] bytes:
+                    return Encoding.Unicode.GetString(bytes);
+                default:
+                    return null;
+            }
+        }
+
         private static string readTitle(BitmapMetadata metadata) {
-            var xmpTitle = metadata.GetQuery(XmpDescriptionQuery) as string ??
-                metadata.GetQuery(XmpTitleQuery) as string;
+            var xmpTitle = readString(metadata, XmpDescriptionQuery) as string ??
+                readString(metadata, XmpTitleQuery) as string;
             if (!string.IsNullOrWhiteSpace(xmpTitle)) {
                 return fromUniversalNewline(xmpTitle).Trim();
             }
-            var exifTitle = maybeGetString(metadata, TitleQuery);
+            var exifTitle = readString(metadata, TitleQuery);
             if (!string.IsNullOrWhiteSpace(exifTitle)) {
                 return fromUniversalNewline(exifTitle).Trim();
             }
-            if (metadata.GetQuery(WinTitleQuery) is byte[] winTitle) {
-                var winTitleString = Encoding.Unicode.GetString(winTitle);
-                if (!string.IsNullOrWhiteSpace(winTitleString)) {
-                    // Remove trailing null.
-                    return fromUniversalNewline(winTitleString
-                        .Substring(0, winTitleString.Length - 1)).Trim();
-                }
+            xmpTitle = readString(metadata, WinTitleQuery);
+            if (!string.IsNullOrWhiteSpace(xmpTitle)) {
+                // Remove trailing null.
+                return fromUniversalNewline(xmpTitle
+                    .Substring(0, xmpTitle.Length - 1)).Trim();
             }
             return xmpTitle;
         }
@@ -86,7 +105,7 @@ namespace PhotoTagger.Imaging {
         }
 
         private static DateTime? readDateTaken(BitmapMetadata metadata) {
-            var dateString = maybeGetString(metadata, DateTakenQuery);
+            var dateString = readString(metadata, DateTakenQuery);
             if (string.IsNullOrWhiteSpace(dateString)) {
                 return null;
             }
@@ -94,7 +113,7 @@ namespace PhotoTagger.Imaging {
                 ExifDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) {
                 return null;
             }
-            var subsecString = maybeGetString(metadata, DateTakenSubsecQuery);
+            var subsecString = readString(metadata, DateTakenSubsecQuery);
             if (subsecString != null && double.TryParse("0." + subsecString,
                                                         NumberStyles.Float,
                                                         CultureInfo.InvariantCulture,
@@ -121,17 +140,6 @@ namespace PhotoTagger.Imaging {
                 latProp.SelectMany(BitConverter.GetBytes).ToArray(),
                 Encoding.ASCII.GetBytes(lonSignProp),
                 lonProp.SelectMany(BitConverter.GetBytes).ToArray());
-        }
-
-        static string maybeGetString(BitmapMetadata metadata, string query) {
-            var data = metadata.GetQuery(query);
-            if (data == null) {
-                return null;
-            } else {
-                // metadata.GetQuery interprets the bytes in the default
-                // encoding.  This is usually wrong.  Re-decode as UTF8.
-                return Encoding.UTF8.GetString(Encoding.Default.GetBytes(data.ToString()));
-            }
         }
 
         public static Rotation OrienationToRotation(short orienation) {
