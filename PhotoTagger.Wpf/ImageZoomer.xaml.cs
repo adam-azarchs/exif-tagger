@@ -1,5 +1,6 @@
 ﻿using PhotoTagger.Imaging;
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -224,7 +225,19 @@ namespace PhotoTagger.Wpf {
             DependencyObject d,
             DependencyPropertyChangedEventArgs e) {
             if (d is ImageZoomer zoom && e.OldValue != e.NewValue) {
+                if (e.OldValue is Photo po) {
+                    po.PropertyChanged -= zoom.imageUpdated;
+                }
+                if (e.NewValue is Photo pn) {
+                    pn.PropertyChanged += zoom.imageUpdated;
+                }
                 zoom.computeTransform();
+            }
+        }
+
+        private void imageUpdated(object sender, PropertyChangedEventArgs e) {
+            if (e.PropertyName == nameof(Photo.FullImage)) {
+                this.computeTransform();
             }
         }
 
@@ -306,6 +319,11 @@ namespace PhotoTagger.Wpf {
         }
 
         private void sizeChanged(object sender, SizeChangedEventArgs e) {
+            if (e.NewSize.Width == 0 && e.PreviousSize.Width != 0 ||
+                e.NewSize.Height == 0 && e.PreviousSize.Height != 0 ||
+                e.NewSize.Equals(e.PreviousSize)) {
+                return;
+            }
             this.computeTransform();
         }
     }

@@ -29,10 +29,9 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="7*" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
@@ -67,146 +66,155 @@
                       Grid.Column="1"
                       ResizeBehavior="PreviousAndNext" />
         <Grid Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Button Grid.Row="0"
-                VerticalContentAlignment="Stretch"
-                HorizontalContentAlignment="Stretch"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0"
+                        VerticalContentAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
                 Click="onClickFirst">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">
-                        <TextBlock.Text>
-                            <PriorityBinding>
-                                <PriorityBinding.Bindings>
-                                    <Binding ElementName="window"
-                                             Path="SelectedPhotos[0].ShortTitle"/>
-                                    <Binding ElementName="window"
-                                             Path="Photos[0].ShortTitle"/>
-                                </PriorityBinding.Bindings>
-                            </PriorityBinding>
-                        </TextBlock.Text>
-                        <TextBlock.TextDecorations>
-                            <PriorityBinding>
-                                <PriorityBinding.Bindings>
-                                    <Binding Path="SelectedPhotos[0].MarkedForDeletion"
-                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
-                                             ElementName="window" />
-                                    <Binding Path="Photos[0].MarkedForDeletion"
-                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
-                                             ElementName="window" />
-                                </PriorityBinding.Bindings>
-                            </PriorityBinding>
-                        </TextBlock.TextDecorations>
-                    </TextBlock>
-                    <ptwpf:ImageZoomer Grid.Row="1"
-                                       MoveToPan="True"
-                                       Name="firstZoom">
-                        <ptwpf:ImageZoomer.Photo>
-                            <PriorityBinding>
-                                <PriorityBinding.Bindings>
-                                    <Binding ElementName="window"
-                                         Path="SelectedPhotos[0]"/>
-                                    <Binding ElementName="window"
-                                         Path="Photos[0]"/>
-                                </PriorityBinding.Bindings>
-                            </PriorityBinding>
-                        </ptwpf:ImageZoomer.Photo>
-                        <ptwpf:ImageZoomer.Scale>
-                            <Binding ElementName="secondZoom"
-                                 Path="Scale" Mode="TwoWay"/>
-                        </ptwpf:ImageZoomer.Scale>
-                        <ptwpf:ImageZoomer.ImageX>
-                            <Binding ElementName="secondZoom"
-                                 Path="ImageX" Mode="TwoWay"/>
-                        </ptwpf:ImageZoomer.ImageX>
-                        <ptwpf:ImageZoomer.ImageY>
-                            <Binding ElementName="secondZoom"
-                                 Path="ImageY" Mode="TwoWay"/>
-                        </ptwpf:ImageZoomer.ImageY>
-                    </ptwpf:ImageZoomer>
-                </Grid>
-            </Button>
-            <Button Grid.Row="1" Click="onDistinctFirst">
-                <Button.Content>
-                    Move to next image group
-                </Button.Content>
-                <Button.IsEnabled>
-                    <Binding Path="Photos.Count"
-                             ElementName="window"
-                             Converter="{StaticResource AnyToEnabledValueConverter}"/>
-                </Button.IsEnabled>
-            </Button>
-        </Grid>
-        <Grid Grid.Column="3">
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Button Grid.Row="0"
-                VerticalContentAlignment="Stretch"
-                HorizontalContentAlignment="Stretch"
-                Click="onClickSecond">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">
-                        <TextBlock.Text>
-                            <PriorityBinding>
-                                <PriorityBinding.Bindings>
-                                    <Binding ElementName="window"
-                                             Path="SelectedPhotos[1].ShortTitle"/>
-                                    <Binding ElementName="window"
-                                             Path="Photos[1].ShortTitle"/>
-                                </PriorityBinding.Bindings>
-                            </PriorityBinding>
-                        </TextBlock.Text>
-                        <TextBlock.TextDecorations>
-                            <PriorityBinding>
-                                <PriorityBinding.Bindings>
-                                    <Binding Path="SelectedPhotos[1].MarkedForDeletion"
-                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
-                                             ElementName="window" />
-                                    <Binding Path="Photos[1].MarkedForDeletion"
-                                             Converter="{StaticResource RejectedToStrikethroughValueConverter}"
-                                             ElementName="window" />
-                                </PriorityBinding.Bindings>
-                            </PriorityBinding>
-                        </TextBlock.TextDecorations>
-                    </TextBlock>
-                    <ptwpf:ImageZoomer Grid.Row="1"
-                                       MoveToPan="True"
-                                       x:Name="secondZoom">
-                        <ptwpf:ImageZoomer.Photo>
-                            <PriorityBinding>
-                                <PriorityBinding.Bindings>
-                                    <Binding ElementName="window"
-                                         Path="SelectedPhotos[1]"/>
-                                    <Binding ElementName="window"
-                                         Path="Photos[1]"/>
-                                </PriorityBinding.Bindings>
-                            </PriorityBinding>
-                        </ptwpf:ImageZoomer.Photo>
-                    </ptwpf:ImageZoomer>
-                </Grid>
-            </Button>
-            <Button Grid.Row="1" Click="onDistinctSecond">
-                <Button.Content>
-                    Move to next image group
-                </Button.Content>
-                <Button.IsEnabled>
-                    <Binding Path="Photos.Count"
-                             ElementName="window"
-                             Converter="{StaticResource AnyToEnabledValueConverter}"/>
-                </Button.IsEnabled>
-            </Button>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0">
+                            <TextBlock.Text>
+                                <PriorityBinding>
+                                    <PriorityBinding.Bindings>
+                                        <Binding ElementName="window"
+                                                 Path="SelectedPhotos[0].ShortTitle"/>
+                                        <Binding ElementName="window"
+                                                 Path="Photos[0].ShortTitle"/>
+                                    </PriorityBinding.Bindings>
+                                </PriorityBinding>
+                            </TextBlock.Text>
+                            <TextBlock.TextDecorations>
+                                <PriorityBinding>
+                                    <PriorityBinding.Bindings>
+                                        <Binding Path="SelectedPhotos[0].MarkedForDeletion"
+                                                 Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                                 ElementName="window" />
+                                        <Binding Path="Photos[0].MarkedForDeletion"
+                                                 Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                                 ElementName="window" />
+                                    </PriorityBinding.Bindings>
+                                </PriorityBinding>
+                            </TextBlock.TextDecorations>
+                        </TextBlock>
+                        <ptwpf:ImageZoomer Grid.Row="1"
+                                           MoveToPan="True"
+                                           Name="firstZoom">
+                            <ptwpf:ImageZoomer.Photo>
+                                <PriorityBinding>
+                                    <PriorityBinding.Bindings>
+                                        <Binding ElementName="window"
+                                                 Path="SelectedPhotos[0]"/>
+                                        <Binding ElementName="window"
+                                                 Path="Photos[0]"/>
+                                    </PriorityBinding.Bindings>
+                                </PriorityBinding>
+                            </ptwpf:ImageZoomer.Photo>
+                            <ptwpf:ImageZoomer.Scale>
+                                <Binding ElementName="secondZoom"
+                                         Path="Scale"
+                                         Mode="TwoWay"/>
+                            </ptwpf:ImageZoomer.Scale>
+                            <ptwpf:ImageZoomer.ImageX>
+                                <Binding ElementName="secondZoom"
+                                         Path="ImageX"
+                                         Mode="TwoWay"/>
+                            </ptwpf:ImageZoomer.ImageX>
+                            <ptwpf:ImageZoomer.ImageY>
+                                <Binding ElementName="secondZoom"
+                                         Path="ImageY"
+                                         Mode="TwoWay"/>
+                            </ptwpf:ImageZoomer.ImageY>
+                        </ptwpf:ImageZoomer>
+                    </Grid>
+                </Button>
+                <Button Grid.Row="1" Click="onDistinctFirst">
+                    <Button.Content>
+                        Move to next image group
+                    </Button.Content>
+                    <Button.IsEnabled>
+                        <Binding Path="Photos.Count"
+                                 ElementName="window"
+                                 Converter="{StaticResource AnyToEnabledValueConverter}"/>
+                    </Button.IsEnabled>
+                </Button>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0"
+                        VerticalContentAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Click="onClickSecond">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0">
+                            <TextBlock.Text>
+                                <PriorityBinding>
+                                    <PriorityBinding.Bindings>
+                                        <Binding ElementName="window"
+                                                 Path="SelectedPhotos[1].ShortTitle"/>
+                                        <Binding ElementName="window"
+                                                 Path="Photos[1].ShortTitle"/>
+                                    </PriorityBinding.Bindings>
+                                </PriorityBinding>
+                            </TextBlock.Text>
+                            <TextBlock.TextDecorations>
+                                <PriorityBinding>
+                                    <PriorityBinding.Bindings>
+                                        <Binding Path="SelectedPhotos[1].MarkedForDeletion"
+                                                 Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                                 ElementName="window" />
+                                        <Binding Path="Photos[1].MarkedForDeletion"
+                                                 Converter="{StaticResource RejectedToStrikethroughValueConverter}"
+                                                 ElementName="window" />
+                                    </PriorityBinding.Bindings>
+                                </PriorityBinding>
+                            </TextBlock.TextDecorations>
+                        </TextBlock>
+                        <ptwpf:ImageZoomer Grid.Row="1"
+                                           MoveToPan="True"
+                                           x:Name="secondZoom">
+                            <ptwpf:ImageZoomer.Photo>
+                                <PriorityBinding>
+                                    <PriorityBinding.Bindings>
+                                        <Binding ElementName="window"
+                                                 Path="SelectedPhotos[1]"/>
+                                        <Binding ElementName="window"
+                                                 Path="Photos[1]"/>
+                                    </PriorityBinding.Bindings>
+                                </PriorityBinding>
+                            </ptwpf:ImageZoomer.Photo>
+                        </ptwpf:ImageZoomer>
+                    </Grid>
+                </Button>
+                <Button Grid.Row="1" Click="onDistinctSecond">
+                    <Button.Content>
+                        Move to next image group
+                    </Button.Content>
+                    <Button.IsEnabled>
+                        <Binding Path="Photos.Count"
+                                 ElementName="window"
+                                 Converter="{StaticResource AnyToEnabledValueConverter}"/>
+                    </Button.IsEnabled>
+                </Button>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

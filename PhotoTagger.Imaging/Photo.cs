@@ -26,14 +26,17 @@ namespace PhotoTagger.Imaging {
         public BitmapImage FullImage {
             get {
                 var imageRef = this.fullImageRef;
-                if (imageRef != null && imageRef.TryGetTarget(out BitmapImage target)) {
+                if (imageRef != null &&
+                    imageRef.TryGetTarget(out BitmapImage target) &&
+                    target != null) {
                     MemoryCache.Default.Set(
                         this.FileName,
                         target,
                         cachePolicy);
                     return target;
                 } else {
-                    if (Interlocked.Exchange(ref this.fullIsLoading, 1) == 0) {
+                    if (this.setFrom != null &&
+                        Interlocked.Exchange(ref this.fullIsLoading, 1) == 0) {
                         this.loader?.EnqueueFullSizeRead(this, this.setFrom);
                     }
                     return this.ThumbImage;
@@ -45,6 +48,7 @@ namespace PhotoTagger.Imaging {
                         this.PropertyChanged?.Invoke(this,
                             new PropertyChangedEventArgs(nameof(FullImage)));
                     }
+                    MemoryCache.Default.Remove(this.FileName);
                     return;
                 } else if (this.fullImageRef == null) {
                     this.fullImageRef = new WeakReference<BitmapImage>(value);
