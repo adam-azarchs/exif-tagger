@@ -25,6 +25,11 @@ namespace PhotoTagger.Imaging {
             makeIOThread();
         }
 
+        internal void EnqueueFullSizeRead(Photo photo, Photo.Metadata meta) {
+            fullsizeReads.Add(new Tuple<Photo, Photo.Metadata>(photo, meta));
+            makeIOThread();
+        }
+
         private BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>> metadataReads =
             new BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>>();
 
@@ -135,16 +140,15 @@ namespace PhotoTagger.Imaging {
                     mmap.Dispose();
                     throw;
                 }
-                if (await photo.Dispatcher.InvokeAsync(() => {
+                if (!await photo.Dispatcher.InvokeAsync(() => {
                     if (photo.Disposed) {
                         return false;
                     }
                     photo.mmap = mmap;
+                    photo.loader = this;
                     photo.ThumbImage = img;
                     return true;
                 })) {
-                    fullsizeReads.Add(new Tuple<Photo, Photo.Metadata>(photo, metadata));
-                } else {
                     mmap.Dispose();
                 }
             } catch (Exception ex) {

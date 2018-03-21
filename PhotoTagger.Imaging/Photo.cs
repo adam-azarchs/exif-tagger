@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,17 +15,52 @@ namespace PhotoTagger.Imaging {
             this.ShortTitle = f;
         }
 
+        private WeakReference<BitmapImage> fullImageRef = null;
+
+        private int fullIsLoading = 0;
+
+        private static CacheItemPolicy cachePolicy = new CacheItemPolicy() {
+            SlidingExpiration = TimeSpan.FromSeconds(10),
+        };
+
         public BitmapImage FullImage {
             get {
-                return (BitmapImage)GetValue(FullImageProperty);
+                var imageRef = this.fullImageRef;
+                if (imageRef != null && imageRef.TryGetTarget(out BitmapImage target)) {
+                    MemoryCache.Default.Set(
+                        this.FileName,
+                        target,
+                        cachePolicy);
+                    return target;
+                } else {
+                    if (Interlocked.Exchange(ref this.fullIsLoading, 1) == 0) {
+                        this.loader?.EnqueueFullSizeRead(this, this.setFrom);
+                    }
+                    return this.ThumbImage;
+                }
             }
             set {
-                SetValue(FullImageProperty, value);
+                if (value == null) {
+                    if (Interlocked.Exchange(ref this.fullImageRef, null) != null) {
+                        this.PropertyChanged?.Invoke(this,
+                            new PropertyChangedEventArgs(nameof(FullImage)));
+                    }
+                    return;
+                } else if (this.fullImageRef == null) {
+                    this.fullImageRef = new WeakReference<BitmapImage>(value);
+                } else {
+                    this.fullImageRef.SetTarget(value);
+                }
+                fullIsLoading = 0;
+                Thread.MemoryBarrier();
+                this.PropertyChanged?.Invoke(this,
+                    new PropertyChangedEventArgs(nameof(FullImage)));
+                MemoryCache.Default.Set(
+                    this.FileName,
+                    value,
+                    cachePolicy);
             }
         }
-        public static readonly DependencyProperty FullImageProperty =
-            DependencyProperty.Register(nameof(FullImage),
-                typeof(BitmapImage), typeof(Photo));
 
         public BitmapImage ThumbImage {
             get {
@@ -32,6 +68,8 @@ namespace PhotoTagger.Imaging {
             }
             set {
                 SetValue(ThumbImageProperty, value);
+                this.PropertyChanged?.Invoke(this,
+                    new PropertyChangedEventArgs(nameof(FullImage)));
             }
         }
         public static readonly DependencyProperty ThumbImageProperty =
@@ -58,11 +96,13 @@ namespace PhotoTagger.Imaging {
         }
 
         private Metadata setFrom = null;
+        internal ImageLoadManager loader = null;
         private bool setting = true;
 
         internal void Set(Metadata from) {
             this.setting = true;
             this.setFrom = from;
+            Thread.MemoryBarrier();
             if (from.Title != null) {
                 this.Title = from.Title;
             } else {
@@ -236,6 +276,7 @@ namespace PhotoTagger.Imaging {
             Thread.MemoryBarrier();
             this.FullImage = null;
             this.ThumbImage = null;
+            MemoryCache.Default.Remove(this.FileName);
             ThreadPool.QueueUserWorkItem(async _ => {
                 bool locked = false;
                 try {
