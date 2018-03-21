@@ -23,6 +23,23 @@ namespace PhotoTagger.Imaging {
             SlidingExpiration = TimeSpan.FromSeconds(10),
         };
 
+        /// <summary>
+        /// Begin the process of loading the full size image.
+        /// </summary>
+        public void Prefetch() {
+            var imageRef = this.fullImageRef;
+            if (this.setFrom == null ||
+                this.loader == null) {
+                // Queue this for prefetch as soon as the metadata is loaded.
+                Interlocked.CompareExchange(ref this.fullIsLoading, -1, 0);
+            } else if (!this.Disposed && (
+                 imageRef == null ||
+                 !imageRef.TryGetTarget(out BitmapImage _)) &&
+                 Interlocked.Exchange(ref this.fullIsLoading, 1) <= 0) {
+                this.loader?.EnqueueFullSizeRead(this, this.setFrom);
+            }
+        }
+
         public BitmapImage FullImage {
             get {
                 var imageRef = this.fullImageRef;
@@ -36,7 +53,9 @@ namespace PhotoTagger.Imaging {
                     return target;
                 } else {
                     if (this.setFrom != null &&
-                        Interlocked.Exchange(ref this.fullIsLoading, 1) == 0) {
+                        this.loader != null &&
+                        !this.Disposed &&
+                        Interlocked.Exchange(ref this.fullIsLoading, 1) <= 0) {
                         this.loader?.EnqueueFullSizeRead(this, this.setFrom);
                     }
                     return this.ThumbImage;
@@ -49,20 +68,17 @@ namespace PhotoTagger.Imaging {
                             new PropertyChangedEventArgs(nameof(FullImage)));
                     }
                     MemoryCache.Default.Remove(this.FileName);
+                    fullIsLoading = 0;
                     return;
                 } else if (this.fullImageRef == null) {
                     this.fullImageRef = new WeakReference<BitmapImage>(value);
                 } else {
                     this.fullImageRef.SetTarget(value);
                 }
-                fullIsLoading = 0;
                 Thread.MemoryBarrier();
+                fullIsLoading = 0;
                 this.PropertyChanged?.Invoke(this,
                     new PropertyChangedEventArgs(nameof(FullImage)));
-                MemoryCache.Default.Set(
-                    this.FileName,
-                    value,
-                    cachePolicy);
             }
         }
 
@@ -72,6 +88,9 @@ namespace PhotoTagger.Imaging {
             }
             set {
                 SetValue(ThumbImageProperty, value);
+                if (fullIsLoading < 0) {
+                    this.Prefetch();
+                }
                 this.PropertyChanged?.Invoke(this,
                     new PropertyChangedEventArgs(nameof(FullImage)));
             }

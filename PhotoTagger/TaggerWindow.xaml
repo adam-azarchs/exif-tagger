@@ -45,7 +45,8 @@
             <ptwpf:PhotoList Grid.Row="0"
                              x:Name="photoList"
                              SelectionMode="Extended"
-                             Photos="{Binding Photos, ElementName=window}"/>
+                             Photos="{Binding Photos, ElementName=window}"
+                             OnSelectionChanged="onSelectionChanged" />
             <StackPanel Grid.Row="1">
                 <Button Content="Add images..."
                         Click="addImagesEvent" />

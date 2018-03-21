@@ -50,6 +50,8 @@ namespace PhotoTagger.Wpf {
             }
         }
 
+        public event SelectionChangedEventHandler OnSelectionChanged;
+
         private void onSelectionChanged(object sender, SelectionChangedEventArgs e) {
             foreach (var item in e.RemovedItems) {
                 this.selected.Remove(item as Photo);
@@ -57,6 +59,7 @@ namespace PhotoTagger.Wpf {
             foreach (var item in e.AddedItems) {
                 this.selected.Add(item as Photo);
             }
+            OnSelectionChanged?.Invoke(sender, e);
         }
 
 

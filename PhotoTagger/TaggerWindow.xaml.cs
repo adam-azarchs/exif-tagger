@@ -35,10 +35,24 @@ namespace PhotoTagger {
                         photo.PropertyChanged += photoChanged;
                     }
                 }
+                foreach (var item in e.NewItems.OfType<Photo>().Take(3)) {
+                    item.Prefetch();
+                }
             }
             if (e.OldItems != null) {
                 // New items are always unchanged to begin.
                 this.commitButton.IsEnabled = this.Photos.Any(p => p.IsChanged);
+            }
+        }
+
+        private void onSelectionChanged(object sender, SelectionChangedEventArgs e) {
+            var photos = this.Photos;
+            foreach (var photo in e.AddedItems.OfType<Photo>().Take(3)) {
+                photo.Prefetch();
+                var i = photos.IndexOf(photo);
+                if (i >= 0 && i < photos.Count - 2) {
+                    photos[i + 1].Prefetch();
+                }
             }
         }
 

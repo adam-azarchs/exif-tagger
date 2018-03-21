@@ -187,6 +187,15 @@ namespace PhotoCull {
             await reject(true);
         }
 
+        private void prefetch() {
+            var photos = this.Photos;
+            if (photos.Count > 2) {
+                foreach (var p in photos.Take(3)) {
+                    p.Prefetch();
+                }
+            }
+        }
+
         private async Task reject(bool first) {
             var photos = this.Photos;
             if (photos.Count == 0) {
@@ -224,6 +233,7 @@ namespace PhotoCull {
             good.MarkedForDeletion = false;
             this.deleteButton.IsEnabled = true;
             this.photoList.SelectedValue = null;
+            this.prefetch();
         }
 
         private async void onDistinctFirst(object sender, RoutedEventArgs e) {
@@ -277,6 +287,7 @@ namespace PhotoCull {
             }
             this.deleteButton.IsEnabled = photos.Any(p => p.MarkedForDeletion);
             this.photoList.SelectedValue = null;
+            this.prefetch();
         }
 
         private static bool debugging() {
