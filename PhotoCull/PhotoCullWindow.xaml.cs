@@ -231,6 +231,7 @@ namespace PhotoCull {
                 photos.Move(goodIndex, 0);
             }
             good.MarkedForDeletion = false;
+            reject.Uncache();
             this.deleteButton.IsEnabled = true;
             this.photoList.SelectedValue = null;
             this.prefetch();

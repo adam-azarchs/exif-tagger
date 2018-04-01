@@ -178,28 +178,29 @@ namespace PhotoTagger.Imaging {
                 if (photo.Disposed) {
                     return;
                 }
-                var data = await photo.Dispatcher.InvokeAsync(
+                var (mmap, fullImageStream) = await photo.Dispatcher.InvokeAsync(
                     () => (photo.mmap, photo.fullImageStream));
-                if (data.mmap == null) {
+                if (mmap == null) {
                     // disposed
                     return;
                 }
-                if (data.fullImageStream == null) {
-                    data.fullImageStream = new UnsafeMemoryMapStream(
-                        data.mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
+                if (fullImageStream == null) {
+                    fullImageStream = new UnsafeMemoryMapStream(
+                        mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
                         FileAccess.Read);
                     await photo.Dispatcher.InvokeAsync(() => {
-                        var p = Interlocked.CompareExchange(ref photo.fullImageStream, data.fullImageStream, null);
+                        var p = Interlocked.CompareExchange(
+                            ref photo.fullImageStream, fullImageStream, null);
                         if (p != null) {
-                            data.fullImageStream.Dispose();
-                            data.fullImageStream = p;
+                            fullImageStream.Dispose();
+                            fullImageStream = p;
                         }
                     });
                 }
                 var img = new BitmapImage();
                 try {
                     img.BeginInit();
-                    img.StreamSource = data.fullImageStream.Stream;
+                    img.StreamSource = fullImageStream.Stream;
                     makeFullImage(metadata, img);
                 } catch (Exception ex) {
                     await photo.Dispatcher.InvokeAsync(() => {
@@ -219,6 +220,10 @@ namespace PhotoTagger.Imaging {
                     photo.loadLock.Release();
                 }
             }
+            // Now is a good time to do a gen-0 GC to make sure the image we
+            // just loaded gets promoted to at least gen1 before its caching
+            // expires.
+            GC.Collect(0);
         }
 
         /// <summary>
@@ -249,7 +254,6 @@ namespace PhotoTagger.Imaging {
                 }
             }
             img.CacheOption = BitmapCacheOption.None;
-            img.CreateOptions = BitmapCreateOptions.DelayCreation;
             img.Rotation = Exif.OrienationToRotation(metadata.Orientation);
             img.EndInit();
             img.Freeze();

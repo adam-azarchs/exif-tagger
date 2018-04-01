@@ -20,24 +20,37 @@ namespace PhotoTagger.Imaging {
         private int fullIsLoading = 0;
 
         private static CacheItemPolicy cachePolicy = new CacheItemPolicy() {
-            SlidingExpiration = TimeSpan.FromSeconds(10),
+            SlidingExpiration = TimeSpan.FromSeconds(15),
         };
 
         /// <summary>
         /// Begin the process of loading the full size image.
         /// </summary>
         public void Prefetch() {
+            BitmapImage img = null;
             var imageRef = this.fullImageRef;
             if (this.setFrom == null ||
                 this.loader == null) {
                 // Queue this for prefetch as soon as the metadata is loaded.
                 Interlocked.CompareExchange(ref this.fullIsLoading, -1, 0);
             } else if (!this.Disposed && (
-                 imageRef == null ||
-                 !imageRef.TryGetTarget(out BitmapImage _)) &&
-                 Interlocked.Exchange(ref this.fullIsLoading, 1) <= 0) {
+                           imageRef == null ||
+                           !imageRef.TryGetTarget(out img)) &&
+                       Interlocked.Exchange(ref this.fullIsLoading, 1) <= 0) {
                 this.loader?.EnqueueFullSizeRead(this, this.setFrom);
+            } else if (img != null) {
+                MemoryCache.Default.Set(
+                        this.FileName,
+                        img,
+                        cachePolicy);
             }
+        }
+
+        /// <summary>
+        /// Remove this image from the cache.
+        /// </summary>
+        public void Uncache() {
+            MemoryCache.Default.Remove(this.FileName);
         }
 
         public BitmapImage FullImage {
