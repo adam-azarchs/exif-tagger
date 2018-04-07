@@ -259,6 +259,10 @@ namespace PhotoTagger.Imaging {
             img.Freeze();
         }
 
+        private class ImageLoadException : Exception {
+            public ImageLoadException(string message) : base(message) { }
+        }
+
         /// <summary>
         /// Saves the given <see cref="Photo"/> to the disk.
         /// </summary>
@@ -268,61 +272,19 @@ namespace PhotoTagger.Imaging {
         /// </param>
         /// <returns></returns>
         public static async Task Commit(Photo photo, string destination = null) {
-            var tempFile = photo.FileName + DateTime.Now.Ticks.ToString() + ".tmp";
-            if (destination != null) {
-                tempFile = destination;
-            }
+            var tempFile = destination ?? photo.FileName + DateTime.Now.Ticks.ToString() + ".tmp";
             Photo.Metadata newSource;
-            using (var mmap = MemoryMappedFile.OpenExisting(
-                mmapName(photo.FileName),
-                MemoryMappedFileRights.Read)) {
-                using (var stream = new UnsafeMemoryMapStream(
-                            mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
-                            FileAccess.Read)) {
-                    BitmapFrame sourceFrame;
-                    Guid format;
-                    int width, height;
-                    {
-                        var decoder = BitmapDecoder.Create(stream.Stream,
-                                    BitmapCreateOptions.PreservePixelFormat,
-                                    BitmapCacheOption.None);
-                        var frames = decoder.Frames;
-                        if (frames.Count < 1) {
-                            await photo.Dispatcher.InvokeAsync(() => {
-                                MessageBox.Show("Invalid image data",
-                                    string.Format("Image {0} did not contain any frames.",
-                                        photo.FileName),
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Error);
-                            });
-                            return;
-                        }
-                        sourceFrame = frames[0];
-                        format = decoder.CodecInfo.ContainerFormat;
-                        width = sourceFrame.PixelWidth;
-                        height = sourceFrame.PixelHeight;
-                    }
-                    var md = sourceFrame.Metadata.Clone() as BitmapMetadata;
-                    newSource = await Exif.SetMetadata(photo, md);
-                    newSource.Width = width;
-                    newSource.Height = height;
-                    BitmapEncoder encoder;
-                    if (destination != null) {
-                        encoder = new JpegBitmapEncoder();
-                    } else {
-                        encoder = BitmapEncoder.Create(format);
-                    }
-                    encoder.Frames.Add(
-                        BitmapFrame.Create(
-                            sourceFrame.Clone() as BitmapFrame,
-                            sourceFrame.Thumbnail,
-                            md,
-                            sourceFrame.ColorContexts));
-                    sourceFrame = null;
-                    using (var outFile = new FileStream(tempFile, FileMode.CreateNew)) {
-                        encoder.Save(outFile);
-                    }
-                }
+            try {
+                newSource = await reloadAndSave(photo, destination != null, tempFile);
+            } catch (ImageLoadException ex) {
+                await photo.Dispatcher.InvokeAsync(() => {
+                    MessageBox.Show("Invalid image data",
+                        string.Format($"Image {photo.FileName} {ex.Message}.",
+                            photo.FileName),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                });
+                return;
             }
             if (destination == null) {
                 var oldFile = tempFile + "2";
@@ -352,6 +314,51 @@ namespace PhotoTagger.Imaging {
                     await reloadAndRemove(photo, newSource, oldFile);
                 }
             }
+        }
+
+        private static async Task<Photo.Metadata> reloadAndSave(
+            Photo photo, bool forceJpeg, string destFile) {
+            using (var mmap = MemoryMappedFile.OpenExisting(
+                                mmapName(photo.FileName),
+                                MemoryMappedFileRights.Read)) {
+                using (var stream = new UnsafeMemoryMapStream(
+                            mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
+                            FileAccess.Read)) {
+                    BitmapFrame sourceFrame;
+                    Guid format;
+                    (sourceFrame, format) = loadFrame(stream.Stream);
+                    var md = sourceFrame.Metadata.Clone() as BitmapMetadata;
+                    Photo.Metadata newMetadata = await Exif.SetMetadata(photo, md);
+                    newMetadata.Width = sourceFrame.PixelWidth;
+                    newMetadata.Height = sourceFrame.PixelHeight;
+                    BitmapEncoder encoder = forceJpeg ?
+                        new JpegBitmapEncoder() :
+                        BitmapEncoder.Create(format);
+                    encoder.Frames.Add(
+                        BitmapFrame.Create(
+                            sourceFrame.Clone() as BitmapFrame,
+                            sourceFrame.Thumbnail,
+                            md,
+                            sourceFrame.ColorContexts));
+                    sourceFrame = null;
+                    using (var outFile = new FileStream(destFile, FileMode.CreateNew)) {
+                        encoder.Save(outFile);
+                    }
+                    return newMetadata;
+                }
+            }
+        }
+
+        private static ValueTuple<BitmapFrame, Guid> loadFrame(Stream stream) {
+            var decoder = BitmapDecoder.Create(stream,
+                        BitmapCreateOptions.PreservePixelFormat,
+                        BitmapCacheOption.None);
+            var frames = decoder.Frames;
+            if (frames.Count < 1) {
+                throw new ImageLoadException("did not contain any frames");
+            }
+            var sourceFrame = frames[0];
+            return (sourceFrame, decoder.CodecInfo.ContainerFormat);
         }
 
         /// <summary>
