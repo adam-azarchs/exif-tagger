@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace PhotoTagger.Imaging {
@@ -35,7 +36,8 @@ namespace PhotoTagger.Imaging {
         const string XmpDescriptionQuery = "/xmp/dc:description";
         const string DateTakenQuery = "/app1/ifd/exif/{ushort=36867}";
         const string DateTakenSubsecQuery = "/app1/ifd/exif/{ushort=37521}";
-        const string OrientationQuery = "/app1/ifd/{ushort=274}";
+        const string JpegOrientationQuery = "/app1/ifd/{ushort=274}";
+        const string RawOrientationQuery = "/ifd/{ushort=274}";
 
         const string LatitudeRefQuery = "/app1/ifd/gps/subifd:{ulong=1}";
         const string LatitudeQuery = "/app1/ifd/gps/subifd:{ulong=2}";
@@ -45,6 +47,32 @@ namespace PhotoTagger.Imaging {
         const string PaddingQuery = "/app1/ifd/PaddingSchema:Padding";
         const string ExifPaddingQuery = "/app1/ifd/exif/PaddingSchema:Padding";
         const string XmpPaddingQuery = "/xmp/PaddingSchema:Padding";
+        const string ColorSpaceQuery = "/app1/{ushort=0}/{ushort=34665}/{ushort=40961}";
+
+        // From the System.Title Photo Metadata Policy
+        readonly static string[] TitleReadQueries = {
+            WinTitleQuery,
+            "/xmp/<xmpalt>dc:title",
+            XmpTitleQuery,
+            "/app1/ifd/exif/{ushort=37510}",
+            TitleQuery,
+            "/app13/irb/8bimiptc/iptc/caption",
+            "/xmp/<xmpalt>dc:description",
+            XmpDescriptionQuery,
+            "/app13/irb/8bimiptc/iptc/caption",
+            "/xmp/<xmpalt>exif:UserComment",
+        };
+
+        // From the System.Title Photo Metadata Policy
+        readonly static string[] TitleRemoveQueries = {
+            WinTitleQuery,
+            XmpTitleQuery,
+            "/app1/ifd/exif/{ushort=37510}",
+            "/xmp/<xmpalt>exif:UserComment",
+            TitleQuery,
+            "/app13/irb/8bimiptc/iptc/caption",
+            XmpDescriptionQuery,
+        };
 
         #endregion
 
@@ -82,22 +110,14 @@ namespace PhotoTagger.Imaging {
         }
 
         private static string readTitle(BitmapMetadata metadata) {
-            var xmpTitle = readString(metadata, XmpDescriptionQuery) as string ??
-                readString(metadata, XmpTitleQuery) as string;
-            if (!string.IsNullOrWhiteSpace(xmpTitle)) {
-                return fromUniversalNewline(xmpTitle).Trim();
+            foreach (var query in TitleReadQueries) {
+                var v = readString(metadata, query);
+                if (!string.IsNullOrWhiteSpace(v)) {
+                    return fromUniversalNewline(v)
+                        .TrimEnd('\0').Trim();
+                }
             }
-            var exifTitle = readString(metadata, TitleQuery);
-            if (!string.IsNullOrWhiteSpace(exifTitle)) {
-                return fromUniversalNewline(exifTitle).Trim();
-            }
-            xmpTitle = readString(metadata, WinTitleQuery);
-            if (!string.IsNullOrWhiteSpace(xmpTitle)) {
-                // Remove trailing null.
-                return fromUniversalNewline(xmpTitle
-                    .Substring(0, xmpTitle.Length - 1)).Trim();
-            }
-            return xmpTitle;
+            return string.Empty;
         }
 
         private static string readAuthor(BitmapMetadata metadata) {
@@ -159,7 +179,14 @@ namespace PhotoTagger.Imaging {
 
         private static short getOrientation(BitmapMetadata metadata) {
             try {
-                var orientationProp = metadata.GetQuery(OrientationQuery) as ushort?;
+                ushort? orientationProp;
+                if (metadata.ContainsQuery(JpegOrientationQuery)) {
+                    orientationProp = metadata.GetQuery(JpegOrientationQuery) as ushort?;
+                } else if (metadata.ContainsQuery(RawOrientationQuery)) {
+                    orientationProp = metadata.GetQuery(RawOrientationQuery) as ushort?;
+                } else {
+                    return 1;
+                }
                 if (orientationProp.HasValue) {
                     return (short)orientationProp.Value;
                 }
@@ -180,39 +207,41 @@ namespace PhotoTagger.Imaging {
                 source.Author = photo.Photographer;
                 source.DateTaken = photo.DateTaken;
                 source.Location = photo.Location;
+                source.Orientation = 1;
             });
-            int pad = 0;
-            if (source.Title != null) {
+            if (!string.IsNullOrWhiteSpace(source.Title)) {
                 var title = toUniversalNewline(source.Title.Trim());
                 var bytes = Encoding.UTF8.GetBytes(title);
                 dest.SetQuery(TitleQuery, Encoding.Default.GetString(bytes));
                 var utf16bytes = Encoding.Unicode.GetBytes(title + '\0');
                 dest.SetQuery(WinTitleQuery, utf16bytes);
                 dest.Title = title;
-                pad += bytes.Length * 4 + utf16bytes.Length + 16;
+            } else {
+                dest.Title = string.Empty;
+                foreach (var query in TitleRemoveQueries) {
+                    dest.RemoveQuery(query);
+                }
             }
-            if (source.Author != null) {
+            if (!string.IsNullOrWhiteSpace(source.Author)) {
                 var bytes = Encoding.UTF8.GetBytes(source.Author);
                 dest.Author = new ReadOnlyCollection<string>(new string[] {
                     Encoding.Default.GetString(bytes)
                 });
-                pad += bytes.Length + 16;
+            } else {
+                dest.Author = null;
             }
             if (source.DateTaken.HasValue) {
                 var bytes = Encoding.ASCII.GetBytes(
                     source.DateTaken.Value.ToString(ExifDateFormat, CultureInfo.InvariantCulture));
                 dest.SetQuery(DateTakenQuery, Encoding.Default.GetString(bytes));
-                pad += bytes.Length + 16;
+            } else {
+                dest.RemoveQuery(DateTakenQuery);
+                dest.RemoveQuery(DateTakenSubsecQuery);
             }
             if (source.Location != null) {
                 setLocation(dest, source.Location);
-                pad += 404;
-            }
-            if (pad != 0) {
-                uint padding = (uint)pad + 256u;
-                dest.SetQuery(PaddingQuery, padding);
-                dest.SetQuery(ExifPaddingQuery, padding);
-                dest.SetQuery(XmpPaddingQuery, padding);
+            } else {
+                clearLocation(dest);
             }
             return source;
         }
@@ -228,6 +257,21 @@ namespace PhotoTagger.Imaging {
             dest.SetQuery(LatitudeQuery, bytesToLongs(loc.LatBytes).ToArray());
             dest.SetQuery(LongitudeRefQuery, Encoding.Default.GetString(loc.LonSignBytes));
             dest.SetQuery(LongitudeQuery, bytesToLongs(loc.LonBytes).ToArray());
+        }
+
+        private static void clearLocation(BitmapMetadata dest) {
+            dest.RemoveQuery(LatitudeRefQuery);
+            dest.RemoveQuery(LatitudeQuery);
+            dest.RemoveQuery(LongitudeRefQuery);
+            dest.RemoveQuery(LongitudeQuery);
+        }
+
+        internal static Rotation SaveRotation(BitmapMetadata md) {
+            var rotation = OrienationToRotation(getOrientation(md));
+            if (rotation != Rotation.Rotate0) {
+                md.SetQuery(JpegOrientationQuery, (short)1);
+            }
+            return rotation;
         }
 
         #endregion

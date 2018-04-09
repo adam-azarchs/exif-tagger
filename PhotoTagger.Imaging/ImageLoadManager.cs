@@ -6,6 +6,7 @@ using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -324,9 +325,7 @@ namespace PhotoTagger.Imaging {
                 using (var stream = new UnsafeMemoryMapStream(
                             mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
                             FileAccess.Read)) {
-                    BitmapFrame sourceFrame;
-                    Guid format;
-                    (sourceFrame, format) = loadFrame(stream.Stream);
+                    (var sourceFrame, var format) = loadFrame(stream.Stream);
                     var md = sourceFrame.Metadata.Clone() as BitmapMetadata;
                     Photo.Metadata newMetadata = await Exif.SetMetadata(photo, md);
                     newMetadata.Width = sourceFrame.PixelWidth;
@@ -336,10 +335,13 @@ namespace PhotoTagger.Imaging {
                         BitmapEncoder.Create(format);
                     encoder.Frames.Add(
                         BitmapFrame.Create(
-                            sourceFrame.Clone() as BitmapFrame,
-                            sourceFrame.Thumbnail,
+                            sourceFrame,
+                            null,
                             md,
                             sourceFrame.ColorContexts));
+                    if (encoder is JpegBitmapEncoder jpg) {
+                        jpg.Rotation = Exif.SaveRotation(md);
+                    }
                     sourceFrame = null;
                     using (var outFile = new FileStream(destFile, FileMode.CreateNew)) {
                         encoder.Save(outFile);
