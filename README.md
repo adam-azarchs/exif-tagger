@@ -1,7 +1,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/3gk3h9f3dl584w3w?svg=true)](https://ci.appveyor.com/project/adam-azarchs/exif-tagger)
 
-[Download the latest build](https://ci.appveyor.com/project/adam-azarchs/exif-tagger/build/artifacts)
+[Download the latest release](https://github.com/adam-azarchs/exif-tagger/releases/download/v0.0.1/PhotoTagger.zip)
 
 # PhotoTagger
 
