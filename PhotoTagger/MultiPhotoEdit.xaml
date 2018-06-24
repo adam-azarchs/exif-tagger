@@ -1,16 +1,9 @@
 ﻿<UserControl x:Class="PhotoTagger.MultiPhotoEdit"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PhotoTagger"
-             xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
-             mc:Ignorable="d"
-             Name="Editor"
-             d:DesignHeight="300" d:DesignWidth="300">
+             Name="Editor" >
     <UserControl.Resources>
-        <ptwpf:DateTimeRangeIsRangeToVisibilityConverter x:Key="DateTimeRangeIsRangeToVisibilityConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:MultiValueConverter x:Key="MultiValueConverter"/>
     </UserControl.Resources>
@@ -70,47 +63,11 @@
                  Grid.Row="3" Grid.Column="1" />
         <TextBlock Text="Date range:"
                    Grid.Row="4" Grid.Column="0" />
-        <Grid Grid.Row="4" Grid.Column="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding Photos.Dates.Min,
-                              ElementName=Editor,
-                              StringFormat=\{0:F\}}"
-                       Grid.Column="0" />
-            <TextBlock Text="to" Grid.Column="1"
-                       Visibility="{Binding Photos.Dates,
-                                    Converter={StaticResource
-                                        DateTimeRangeIsRangeToVisibilityConverter},
-                                    ElementName=Editor,
-                                    Mode=OneWay}" />
-            <TextBlock Text="{Binding Photos.Dates.Max,
-                              ElementName=Editor,
-                              StringFormat=\{0:F\}}"
-                       Visibility="{Binding Photos.Dates,
-                                    Converter={StaticResource
-                                        DateTimeRangeIsRangeToVisibilityConverter},
-                                    ElementName=Editor,
-                                    Mode=OneWay}"
-                       Grid.Column="2" />
-            <!--<xctk:DateTimePicker TimeFormat="FullDateTime"
-                             Value="{Binding
-                                     Photos.MinDate,
-                                     ElementName=Editor,
-                                     Mode=TwoWay}"
-                             Grid.Column="0"
-                             HorizontalContentAlignment="Left"
-                             HorizontalAlignment="Left" />
-            <xctk:DateTimePicker TimeFormat="FullDateTime"
-                             Value="{Binding
-                                     Photos.MaxDate,
-                                     ElementName=Editor,
-                                     Mode=TwoWay}"
-                             Grid.Column="1"
-                             HorizontalContentAlignment="Left"
-                             HorizontalAlignment="Left" />-->
-        </Grid>
+        <local:DateTimeRangeEdit Grid.Row="4" Grid.Column="1">
+            <local:DateTimeRangeEdit.PhotoSet>
+                <Binding ElementName="Editor"
+                         Path="PhotoSet"/>
+            </local:DateTimeRangeEdit.PhotoSet>
+        </local:DateTimeRangeEdit>
     </Grid>
 </UserControl>

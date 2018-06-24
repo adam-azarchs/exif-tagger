@@ -7,7 +7,8 @@
         xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
         x:Name="window" x:Class="PhotoTagger.TaggerWindow"
         mc:Ignorable="d"
-        Title="Photo tagger" >
+        Title="Photo tagger"
+        AllowDrop="True" Drop="onFilesDrop" >
     <Window.Resources>
         <ptwpf:AnyToEnabledValueConverter x:Key="AnyToEnabledValueConverter"/>
         <ptwpf:ElementCountToVisibilityValueConverter x:Key="ElementCountToVisibilityValueConverter"/>

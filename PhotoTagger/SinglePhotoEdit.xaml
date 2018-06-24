@@ -1,13 +1,9 @@
 ﻿<UserControl x:Class="PhotoTagger.SinglePhotoEdit"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
-             mc:Ignorable="d" 
-             Name="Editor"
-             d:DesignHeight="200" d:DesignWidth="300">
+             Name="Editor" >
     <UserControl.Resources>
         <ptwpf:GpsLocationValueConverter x:Key="GpsLocationValueConverter"/>
     </UserControl.Resources>
@@ -56,7 +52,8 @@
                  Grid.Row="3" Grid.Column="1" />
         <TextBlock Text="Date taken:"
                    Grid.Row="4" Grid.Column="0" />
-        <xctk:DateTimePicker TimeFormat="FullDateTime"
+        <xctk:DateTimePicker Format="Custom"
+                             FormatString="G"
                              Value="{Binding
                                      Photo.DateTaken,
                                      ElementName=Editor,

@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace PhotoTagger.Imaging {
@@ -73,6 +72,18 @@ namespace PhotoTagger.Imaging {
             "/app13/irb/8bimiptc/iptc/caption",
             XmpDescriptionQuery,
         };
+
+        // From the System.Author Photo Metadata Policy
+        readonly static string[] AuthorRemoveQueries = {
+            "/xmp/dc:creator",
+            "/xmp/tiff:artist",
+            "/app13/irb/8bimiptc/iptc/by-line",
+            "/app1/ifd/{ushort=315}",
+            "/app1/ifd/{ushort=40093}",
+        };
+
+        private static readonly ReadOnlyCollection<string> EmptyStringCollection =
+            new ReadOnlyCollection<string>(new string[] { });
 
         #endregion
 
@@ -144,11 +155,12 @@ namespace PhotoTagger.Imaging {
         }
 
         private static GpsLocation readLocation(BitmapMetadata metadata) {
-            var latSignProp = metadata.GetQuery(LatitudeRefQuery) as string;
             var latProp = metadata.GetQuery(LatitudeQuery) as ulong[];
-            var lonSignProp = metadata.GetQuery(LongitudeRefQuery) as string;
             var lonProp = metadata.GetQuery(LongitudeQuery) as ulong[];
-            if (latSignProp == null || latProp == null || lonSignProp == null || lonProp == null) {
+            if (!(metadata.GetQuery(LatitudeRefQuery) is string latSignProp) ||
+                latProp == null ||
+                !(metadata.GetQuery(LongitudeRefQuery) is string lonSignProp) ||
+                lonProp == null) {
                 return null;
             }
             if (latSignProp.Length != 1 || lonSignProp.Length != 1 ||
@@ -228,7 +240,10 @@ namespace PhotoTagger.Imaging {
                     Encoding.Default.GetString(bytes)
                 });
             } else {
-                dest.Author = null;
+                dest.Author = EmptyStringCollection;
+                foreach (var query in AuthorRemoveQueries) {
+                    dest.RemoveQuery(query);
+                }
             }
             if (source.DateTaken.HasValue) {
                 var bytes = Encoding.ASCII.GetBytes(

@@ -107,16 +107,49 @@ namespace PhotoTagger.Wpf {
     public class DateTimeRangeIsRangeToVisibilityConverter : IValueConverter {
         public object Convert(object value, Type targetType,
             object parameter, CultureInfo culture) {
+            var invert = (parameter as bool?) ?? false;
             if (value is DateTimeRange dtr) {
-                return dtr.IsRange ? Visibility.Visible : Visibility.Hidden;
+                return (dtr.IsRange ^ invert) ? Visibility.Visible : Visibility.Hidden;
             } else {
-                return Visibility.Hidden;
+                return invert ? Visibility.Visible : Visibility.Hidden;
             }
         }
 
         public object ConvertBack(object value, Type targetType,
             object parameter, CultureInfo culture) {
             throw new NotSupportedException();
+        }
+    }
+
+    [ValueConversion(typeof(DateTimeRange?), typeof(DateTime))]
+    [ValueConversion(typeof(DateTime?), typeof(DateTimeRange))]
+    [ValueConversion(typeof(DateTimeRange?), typeof(string))]
+    public class DateTimeRangeToSingleDateConverter : IValueConverter {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+            if (value is DateTimeRange range) {
+                if (parameter is bool useMax && useMax ||
+                    parameter is string pstring && pstring == "true") {
+                    if (targetType == typeof(string)) {
+                        return range.Max.ToString("G", culture);
+                    } else {
+                        return range.Max;
+                    }
+                } else {
+                    if (targetType == typeof(string)) {
+                        return range.Min.ToString("G", culture);
+                    } else {
+                        return range.Min;
+                    }
+                }
+            } else if (value is DateTime t) {
+                return new DateTimeRange(t, t);
+            } else {
+                return null;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+            return Convert(value, targetType, parameter, culture);
         }
     }
 }

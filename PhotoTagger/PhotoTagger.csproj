@@ -73,8 +73,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DateTimeRangeEdit.xaml.cs">
+      <DependentUpon>DateTimeRangeEdit.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MultiPhoto.cs" />
     <Compile Include="MultiValue.cs" />
+    <Page Include="DateTimeRangeEdit.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MultiPhotoEdit.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

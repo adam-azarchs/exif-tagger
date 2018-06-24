@@ -6,7 +6,6 @@ using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -113,8 +112,7 @@ namespace PhotoTagger.Imaging {
                             if (frames.Count < 1) {
                                 throw new ArgumentException("Image contained no frame data.", nameof(photo));
                             }
-                            var imgMeta = frames[0].Metadata as BitmapMetadata;
-                            if (imgMeta == null) {
+                            if (!(frames[0].Metadata is BitmapMetadata imgMeta)) {
                                 throw new NullReferenceException("Image contained no metadata");
                             }
                             metadata = Exif.GetMetadata(imgMeta);

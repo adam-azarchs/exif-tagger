@@ -158,5 +158,13 @@ namespace PhotoTagger {
         private async void commitAll() {
             await Task.WhenAll(this.Photos.Select(p => p.Commit()).ToArray());
         }
+
+        private void onFilesDrop(object sender, DragEventArgs e) {
+            if (!(e.Data.GetData(DataFormats.FileDrop) is string[] files) ||
+                files.Length == 0) {
+                return;
+            }
+            addImages(files);
+        }
     }
 }

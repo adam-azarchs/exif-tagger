@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="PhotoTagger.DateTimeRangeEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:ptwpf="clr-namespace:PhotoTagger.Wpf;assembly=PhotoTagger.Wpf"
+             Name="Editor"
+             mc:Ignorable="d" >
+    <UserControl.Resources>
+        <ptwpf:DateTimeRangeIsRangeToVisibilityConverter
+            x:Key="DateTimeRangeIsRangeToVisibilityConverter"/>
+        <ptwpf:DateTimeRangeToSingleDateConverter
+            x:Key="DateTimeRangeToSingleDateConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <xctk:DateTimePicker Grid.Column="0"
+                             Name="minDatePicker" >
+            <xctk:DateTimePicker.UpdateValueOnEnterKey>
+                False
+            </xctk:DateTimePicker.UpdateValueOnEnterKey>
+            <xctk:DateTimePicker.Format>
+                Custom
+            </xctk:DateTimePicker.Format>
+            <xctk:DateTimePicker.FormatString>
+                G
+            </xctk:DateTimePicker.FormatString>
+            <xctk:DateTimePicker.Value>
+                <Binding ElementName="Editor"
+                         Path="DateRange"
+                         Converter="{StaticResource
+                            DateTimeRangeToSingleDateConverter}"
+                         Mode="TwoWay" />
+            </xctk:DateTimePicker.Value>
+            <xctk:DateTimePicker.HorizontalContentAlignment>
+                Left
+            </xctk:DateTimePicker.HorizontalContentAlignment>
+            <xctk:DateTimePicker.HorizontalAlignment>
+                Left
+            </xctk:DateTimePicker.HorizontalAlignment>
+        </xctk:DateTimePicker>
+        <Grid Grid.Column="1">
+            <Grid.Visibility>
+                <Binding ElementName="Editor"
+                         Path="DateRange"
+                         Converter="{StaticResource
+                            DateTimeRangeIsRangeToVisibilityConverter}"
+                         Mode="OneWay" />
+            </Grid.Visibility>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="to" Grid.Column="0" />
+            <TextBlock Grid.Column="1"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" >
+                <TextBlock.Text>
+                    <Binding ElementName="Editor"
+                             Path="DateRange"
+                             Converter="{StaticResource
+                                DateTimeRangeToSingleDateConverter}"
+                             ConverterParameter="true" />
+                </TextBlock.Text>
+            </TextBlock>
+            <Button Grid.Column="2" Click="setAllEqual">
+                <Button.Content>
+                    Set All Equal
+                </Button.Content>
+                <Button.Margin>
+                    2
+                </Button.Margin>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>
