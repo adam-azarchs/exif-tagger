@@ -38,7 +38,7 @@ namespace PhotoTagger.Wpf {
         }
 
         public static readonly DependencyProperty PhotosProperty =
-            DependencyProperty.Register("Photos",
+            DependencyProperty.Register(nameof(Photos),
                 typeof(ObservableCollection<Photo>), typeof(PhotoList));
 
 

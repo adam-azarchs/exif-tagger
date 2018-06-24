@@ -10,31 +10,57 @@ using System.Windows.Media;
 namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(Visibility))]
     [ValueConversion(typeof(int), typeof(Visibility))]
+    [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
+    [ValueConversion(typeof(int), typeof(bool))]
     public class ElementCountToVisibilityValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter,
               CultureInfo culture) {
             if (value is IReadOnlyList<Photo> list) {
                 if (parameter is int desiredCount) {
                     if (list.Count == desiredCount) {
-                        return Visibility.Visible;
+                        if (targetType == typeof(Visibility)) {
+                            return Visibility.Visible;
+                        } else {
+                            return true;
+                        }
                     }
                 } else if (list.Count > 1) {
-                    return Visibility.Visible;
+                    if (targetType == typeof(Visibility)) {
+                        return Visibility.Visible;
+                    } else {
+                        return true;
+                    }
                 }
             } else if (value is int count) {
                 if (parameter is int desiredCount) {
                     if (count == desiredCount) {
-                        return Visibility.Visible;
+                        if (targetType == typeof(Visibility)) {
+                            return Visibility.Visible;
+                        } else {
+                            return true;
+                        }
                     }
                 } else if (parameter is IConvertible para) {
                     if (para.ToInt32(CultureInfo.InvariantCulture) == count) {
-                        return Visibility.Visible;
+                        if (targetType == typeof(Visibility)) {
+                            return Visibility.Visible;
+                        } else {
+                            return true;
+                        }
                     }
                 } else if (count > 1) {
-                    return Visibility.Visible;
+                    if (targetType == typeof(Visibility)) {
+                        return Visibility.Visible;
+                    } else {
+                        return true;
+                    }
                 }
             }
-            return Visibility.Collapsed;
+            if (targetType == typeof(Visibility)) {
+                return Visibility.Collapsed;
+            } else {
+                return false;
+            }
         }
 
         public object ConvertBack(object value, Type targetType,

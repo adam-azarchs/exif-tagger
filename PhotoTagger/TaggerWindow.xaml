@@ -51,6 +51,18 @@
             <StackPanel Grid.Row="1">
                 <Button Content="Add images..."
                         Click="addImagesEvent" />
+                <Button Click="sortImagesEvent">
+                    <Button.Content>
+                        Sort by date
+                    </Button.Content>
+                    <Button.IsEnabled>
+                        <Binding Path="Photos.Count"
+                             ElementName="window"
+                             Converter="{StaticResource ElementCountToVisibilityValueConverter}"
+                             Mode="OneWay">
+                        </Binding>
+                    </Button.IsEnabled>
+                </Button>
                 <Button Content="Commit changes" Name="commitButton"
                         IsEnabled="False" Click="commitEvent" />
                 <Button Content="Close" Click="closeSelectedEvent"

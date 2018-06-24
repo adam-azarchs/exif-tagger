@@ -22,6 +22,9 @@ namespace PhotoTagger {
         }
 
         void photoCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+            if (e.Action == NotifyCollectionChangedAction.Move) {
+                return;
+            }
             if (e.OldItems != null) {
                 foreach (var item in e.OldItems) {
                     if (item is Photo photo) {
@@ -165,6 +168,13 @@ namespace PhotoTagger {
                 return;
             }
             addImages(files);
+        }
+
+        private void sortImagesEvent(object sender, RoutedEventArgs e) {
+            Photos.CollectionChanged -= photoCollectionChanged;
+            Photos = new ObservableCollection<Photo>(Photos.OrderBy(
+                p => p.DateTaken ?? DateTime.MaxValue));
+            Photos.CollectionChanged += photoCollectionChanged;
         }
     }
 }
