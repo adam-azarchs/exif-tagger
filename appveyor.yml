@@ -3,7 +3,7 @@ version: 0.0.{build}
 build:
   verbosity: minimal
 platform:
-- Any CPU
+- x64
 configuration:
 - Release
 before_build:
