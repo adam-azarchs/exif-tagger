@@ -112,7 +112,7 @@ namespace PhotoTagger {
                     DefaultValue = new ObservableCollection<Photo>()
                 });
 
-        public ReadOnlyObservableCollection<Photo> SelectedPhotos {
+        public ObservableCollection<Photo> SelectedPhotos {
             get {
                 return this.photoList.Selected;
             }

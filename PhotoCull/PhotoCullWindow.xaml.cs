@@ -38,7 +38,7 @@ namespace PhotoCull {
                             DefaultValue = new ObservableCollection<Photo>()
                         });
 
-        public ReadOnlyObservableCollection<Photo> SelectedPhotos {
+        public ObservableCollection<Photo> SelectedPhotos {
             get {
                 return this.photoList.Selected;
             }
@@ -296,11 +296,23 @@ namespace PhotoCull {
         }
 
         private void onFilesDrop(object sender, DragEventArgs e) {
-            var files = e.Data.GetData(DataFormats.FileDrop) as string[];
-            if (files == null || files.Length == 0) {
+            if (!(e.Data.GetData(DataFormats.FileDrop) is string[] files) ||
+                files.Length == 0) {
                 return;
             }
             addImages(files);
+        }
+
+        private void onSelectionChanged(object sender, SelectionChangedEventArgs e) {
+            while (this.SelectedPhotos.Count > 2) {
+                this.SelectedPhotos.RemoveAt(0);
+            }
+            if (this.SelectedPhotos.Count == 1 &&
+                this.SelectedPhotos[0] == this.Photos[1]) {
+                // Don't allow selecting the second photo in the list.
+                // Otherwise we're just comparing that photo to itself.
+                this.SelectedPhotos.RemoveAt(0);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using PhotoTagger.Imaging;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,8 +11,8 @@ namespace PhotoTagger.Wpf {
     public partial class PhotoList : UserControl {
         public PhotoList() {
             InitializeComponent();
+            Selected.CollectionChanged += onSelectedForcedChange;
         }
-
 
         public SelectionMode SelectionMode {
             get {
@@ -41,27 +42,31 @@ namespace PhotoTagger.Wpf {
             DependencyProperty.Register(nameof(Photos),
                 typeof(ObservableCollection<Photo>), typeof(PhotoList));
 
-
-        private readonly ObservableCollection<Photo> selected = new ObservableCollection<Photo>();
-
-        public ReadOnlyObservableCollection<Photo> Selected {
-            get {
-                return new ReadOnlyObservableCollection<Photo>(selected);
-            }
-        }
+        public ObservableCollection<Photo> Selected {
+            get;
+        } = new ObservableCollection<Photo>();
 
         public event SelectionChangedEventHandler OnSelectionChanged;
 
         private void onSelectionChanged(object sender, SelectionChangedEventArgs e) {
             foreach (var item in e.RemovedItems) {
-                this.selected.Remove(item as Photo);
+                this.Selected.Remove(item as Photo);
             }
             foreach (var item in e.AddedItems) {
-                this.selected.Add(item as Photo);
+                this.Selected.Add(item as Photo);
             }
             OnSelectionChanged?.Invoke(sender, e);
         }
 
+        private void onSelectedForcedChange(object sender, NotifyCollectionChangedEventArgs e) {
+            if (e.Action == NotifyCollectionChangedAction.Remove &&
+                this.SelectionMode == SelectionMode.Multiple) {
+                foreach (var item in e.OldItems) {
+                    this.ListBox.SelectedItems.Remove(item);
+                }
+            }
+            // TODO: support other modification types.
+        }
 
         public object SelectedValue {
             get {
@@ -75,7 +80,6 @@ namespace PhotoTagger.Wpf {
         public static readonly DependencyProperty SelectedValueProperty =
             DependencyProperty.Register(nameof(SelectedValue), typeof(object),
                 typeof(PhotoList));
-
 
         public double ThumbnailHeight {
             get {
