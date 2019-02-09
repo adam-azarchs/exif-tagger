@@ -13,6 +13,7 @@
         <ptwpf:AnyToEnabledValueConverter x:Key="AnyToEnabledValueConverter"/>
         <ptwpf:ElementCountToVisibilityValueConverter x:Key="ElementCountToVisibilityValueConverter"/>
         <ptwpf:AnyChangedToEnabledValueConverter x:Key="AnyChangedToEnabledValueConverter"/>
+        <ptwpf:ObservableCollectionToReadOnlyConverter x:Key="ObservableCollectionToReadOnlyConverter"/>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Padding" Value="1,1" />
             <Setter Property="Margin" Value="1,1" />
@@ -87,9 +88,17 @@
                     </Binding>
                 </local:SinglePhotoEdit.Visibility>
             </local:SinglePhotoEdit>
-            <local:MultiPhotoEdit PhotoSet="{Binding SelectedPhotos,
-                                             ElementName=window,
-                                             Mode=OneWay}">
+            <local:MultiPhotoEdit>
+                <local:MultiPhotoEdit.PhotoSet>
+                    <Binding>
+                        <Binding.ElementName>window</Binding.ElementName>
+                        <Binding.Path>SelectedPhotos</Binding.Path>
+                        <Binding.Mode>OneWay</Binding.Mode>
+                        <Binding.Converter>
+                            <StaticResource ResourceKey="ObservableCollectionToReadOnlyConverter"/>
+                        </Binding.Converter>
+                    </Binding>
+                </local:MultiPhotoEdit.PhotoSet>
                 <local:MultiPhotoEdit.Visibility>
                     <Binding Path="SelectedPhotos.Count"
                              ElementName="window"
