@@ -12,16 +12,12 @@ namespace PhotoTagger {
             InitializeComponent();
         }
 
-        private readonly MultiPhoto photos = new MultiPhoto() {
+        public MultiPhoto Photos {
+            get;
+        } = new MultiPhoto() {
             PhotoSet = new ReadOnlyObservableCollection<Photo>(
                 new ObservableCollection<Photo>())
         };
-
-        public MultiPhoto Photos {
-            get {
-                return this.photos;
-            }
-        }
 
         public ReadOnlyObservableCollection<Photo> PhotoSet {
             get {
