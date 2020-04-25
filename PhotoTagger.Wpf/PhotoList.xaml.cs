@@ -1,6 +1,7 @@
-﻿using PhotoTagger.Imaging;
+using PhotoTagger.Imaging;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.Contracts;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -46,14 +47,18 @@ namespace PhotoTagger.Wpf {
             get;
         } = new ObservableCollection<Photo>();
 
-        public event SelectionChangedEventHandler OnSelectionChanged;
+        public event SelectionChangedEventHandler? OnSelectionChanged;
 
         private void onSelectionChanged(object sender, SelectionChangedEventArgs e) {
             foreach (var item in e.RemovedItems) {
-                this.Selected.Remove(item as Photo);
+                Photo? p = item as Photo;
+                Contract.Assert(p != null);
+                this.Selected.Remove(p);
             }
             foreach (var item in e.AddedItems) {
-                this.Selected.Add(item as Photo);
+                Photo? p = item as Photo;
+                Contract.Assert(p != null);
+                this.Selected.Add(p);
             }
             OnSelectionChanged?.Invoke(sender, e);
         }
@@ -68,9 +73,9 @@ namespace PhotoTagger.Wpf {
             // TODO: support other modification types.
         }
 
-        public object SelectedValue {
+        public object? SelectedValue {
             get {
-                return (object)GetValue(SelectedValueProperty);
+                return GetValue(SelectedValueProperty);
             }
             set {
                 SetValue(SelectedValueProperty, value);

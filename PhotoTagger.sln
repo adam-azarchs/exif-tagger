@@ -1,22 +1,22 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoTagger", "PhotoTagger\PhotoTagger.csproj", "{1D77E5DB-4B88-427B-956C-2F325E0B6164}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoTagger", "PhotoTagger\PhotoTagger.csproj", "{1D77E5DB-4B88-427B-956C-2F325E0B6164}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoTaggerTests", "PhotoTaggerTests\PhotoTaggerTests.csproj", "{1DE57892-E66E-4D40-921C-9A7D12194CA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoTaggerTests", "PhotoTaggerTests\PhotoTaggerTests.csproj", "{1DE57892-E66E-4D40-921C-9A7D12194CA4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E7264E15-2484-486F-8BA9-9E1055DDA66D}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		appveyor.yml = appveyor.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoTagger.Imaging", "PhotoTagger.Imaging\PhotoTagger.Imaging.csproj", "{2CF46AE4-1F15-4470-8ABE-1BBDD7EE42B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoTagger.Imaging", "PhotoTagger.Imaging\PhotoTagger.Imaging.csproj", "{2CF46AE4-1F15-4470-8ABE-1BBDD7EE42B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoTagger.Wpf", "PhotoTagger.Wpf\PhotoTagger.Wpf.csproj", "{4C7B56C1-3F49-44F2-BCF4-C8F823E858D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoTagger.Wpf", "PhotoTagger.Wpf\PhotoTagger.Wpf.csproj", "{4C7B56C1-3F49-44F2-BCF4-C8F823E858D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoCull", "PhotoCull\PhotoCull.csproj", "{987FB840-505E-4388-9590-413207A9345F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoCull", "PhotoCull\PhotoCull.csproj", "{987FB840-505E-4388-9590-413207A9345F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

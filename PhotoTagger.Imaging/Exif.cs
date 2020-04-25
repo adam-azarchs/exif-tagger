@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -43,10 +43,12 @@ namespace PhotoTagger.Imaging {
         const string LongitudeRefQuery = "/app1/ifd/gps/subifd:{ulong=3}";
         const string LongitudeQuery = "/app1/ifd/gps/subifd:{ulong=4}";
 
+#pragma warning disable IDE0051 // Remove unused private members
         const string PaddingQuery = "/app1/ifd/PaddingSchema:Padding";
         const string ExifPaddingQuery = "/app1/ifd/exif/PaddingSchema:Padding";
         const string XmpPaddingQuery = "/xmp/PaddingSchema:Padding";
         const string ColorSpaceQuery = "/app1/{ushort=0}/{ushort=34665}/{ushort=40961}";
+#pragma warning restore IDE0051 // Remove unused private members
 
         // From the System.Title Photo Metadata Policy
         readonly static string[] TitleReadQueries = {
@@ -99,7 +101,7 @@ namespace PhotoTagger.Imaging {
             };
         }
 
-        private static string readString(BitmapMetadata metadata, string key) {
+        private static string? readString(BitmapMetadata metadata, string key) {
             var md = metadata.GetQuery(key);
             switch (md) {
                 case string direct:
@@ -131,7 +133,7 @@ namespace PhotoTagger.Imaging {
             return string.Empty;
         }
 
-        private static string readAuthor(BitmapMetadata metadata) {
+        private static string? readAuthor(BitmapMetadata metadata) {
             return metadata.Author?.FirstOrDefault();
         }
 
@@ -154,13 +156,11 @@ namespace PhotoTagger.Imaging {
             return d;
         }
 
-        private static GpsLocation readLocation(BitmapMetadata metadata) {
-            var latProp = metadata.GetQuery(LatitudeQuery) as ulong[];
-            var lonProp = metadata.GetQuery(LongitudeQuery) as ulong[];
+        private static GpsLocation? readLocation(BitmapMetadata metadata) {
             if (!(metadata.GetQuery(LatitudeRefQuery) is string latSignProp) ||
-                latProp == null ||
+                !(metadata.GetQuery(LatitudeQuery) is ulong[] latProp) ||
                 !(metadata.GetQuery(LongitudeRefQuery) is string lonSignProp) ||
-                lonProp == null) {
+                !(metadata.GetQuery(LongitudeQuery) is ulong[] lonProp)) {
                 return null;
             }
             if (latSignProp.Length != 1 || lonSignProp.Length != 1 ||
@@ -175,18 +175,14 @@ namespace PhotoTagger.Imaging {
         }
 
         public static Rotation OrienationToRotation(short orienation) {
-            switch (orienation) {
-                case 1:
-                    return Rotation.Rotate0;
-                case 3:
-                    return Rotation.Rotate180;
-                case 6:
-                    return Rotation.Rotate90;
-                case 8:
-                    return Rotation.Rotate270;
-                default:
-                    throw new NotSupportedException("Unsupported exif rotation.");
-            }
+            return orienation switch
+            {
+                1 => Rotation.Rotate0,
+                3 => Rotation.Rotate180,
+                6 => Rotation.Rotate90,
+                8 => Rotation.Rotate270,
+                _ => throw new NotSupportedException("Unsupported exif rotation."),
+            };
         }
 
         private static short getOrientation(BitmapMetadata metadata) {

@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 version: 0.0.{build}
 build:
   verbosity: minimal
@@ -9,10 +9,12 @@ configuration:
 before_build:
 - nuget restore
 after_build:
-- cd PhotoTagger\bin\Release
-- 7z a ..\..\..\PhotoTagger.zip *.exe *.dll
-- cd ..\..\..\PhotoCull\bin\Release
-- 7z a ..\..\..\PhotoTagger.zip *.exe *.dll
+- cd PhotoTagger\bin\x64\Release\netcoreapp3.1
+- del Xceed.Wpf.DataGrid.dll
+- del Xceed.Wpf.Avalon*
+- 7z a ..\..\..\..\..\PhotoTagger.zip *.exe *.dll *.config *.runtimeconfig.json
+- cd ..\..\..\..\..\PhotoCull\bin\x64\Release\netcoreapp3.1
+- 7z a ..\..\..\..\..\PhotoTagger.zip *.exe *.dll *.config *.runtimeconfig.json
 artifacts:
 - path: PhotoTagger.zip
   name: Zipped

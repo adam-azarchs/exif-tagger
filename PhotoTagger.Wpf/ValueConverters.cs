@@ -1,4 +1,4 @@
-﻿using PhotoTagger.Imaging;
+using PhotoTagger.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -151,7 +151,7 @@ namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(bool), typeof(Brush))]
     public class PhotoHasChangedToBrushValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-            if (value is bool changed) {
+            if (value is bool) {
                 return Colors.DarkRed;
             } else {
                 return SystemColors.ControlTextBrush;
@@ -169,7 +169,7 @@ namespace PhotoTagger.Wpf {
 
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(DateTimeRange?))]
     public class PhotosToDateRangeValueConverter : IValueConverter {
-        public object Convert(object value, Type targetType,
+        public object? Convert(object value, Type targetType,
             object parameter, CultureInfo culture) {
             if (value is IReadOnlyList<Photo> photos) {
                 return DateTimeRange.FromList(photos.Select(p => p.DateTaken));
@@ -187,7 +187,7 @@ namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(ObservableCollection<Photo>),
                      typeof(ReadOnlyObservableCollection<Photo>))]
     public class ObservableCollectionToReadOnlyConverter : IValueConverter {
-        public object Convert(object value, Type targetType,
+        public object? Convert(object value, Type targetType,
                               object parameter, CultureInfo culture) {
             if (value is null) {
                 return null;
@@ -198,7 +198,7 @@ namespace PhotoTagger.Wpf {
             }
         }
 
-        public object ConvertBack(object value, Type targetType,
+        public object? ConvertBack(object value, Type targetType,
                                   object parameter, CultureInfo culture) {
             throw new NotSupportedException();
         }

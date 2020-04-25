@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -9,7 +9,7 @@ using System.Windows;
 [assembly: AssemblyDescription("Views and edits EXIF metadata for a set of jpeg images.")]
 [assembly: AssemblyCompany("Adam Azarchs")]
 [assembly: AssemblyProduct("PhotoTagger")]
-[assembly: AssemblyCopyright("Copyright © 2017")]
+[assembly: AssemblyCopyright("Copyright � 2017")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

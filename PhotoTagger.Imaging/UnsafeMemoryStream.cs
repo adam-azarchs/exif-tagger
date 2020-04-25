@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 
@@ -13,11 +13,23 @@ namespace PhotoTagger.Imaging {
     /// </remarks>
     unsafe class UnsafeMemoryMapStream : IDisposable {
 
-        private MemoryMappedViewAccessor accessor;
-        private byte* bufferPointer = null;
+        private MemoryMappedViewAccessor? accessor;
+        private readonly byte* bufferPointer = null;
+
+
+        private UnmanagedMemoryStream? stream;
 
         public UnmanagedMemoryStream Stream {
-            get; private set;
+            get {
+                var s = this.stream;
+                if (s == null) {
+                    throw new ObjectDisposedException(nameof(UnsafeMemoryMapStream));
+                }
+                return s;
+            }
+            private set {
+                this.stream = value;
+            }
         }
 
         // Take ownership of the giveen buffer object and create a stream
@@ -42,14 +54,16 @@ namespace PhotoTagger.Imaging {
         protected virtual void Dispose(bool disposing) {
             if (!disposedValue) {
                 if (disposing) {
-                    Stream.Dispose();
-                    if (this.bufferPointer != null) {
-                        accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                    stream?.Dispose();
+                    if (this.accessor != null) {
+                        if (this.bufferPointer != null) {
+                            accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                        }
+                        accessor.Dispose();
                     }
-                    accessor.Dispose();
                 }
 
-                Stream = null;
+                stream = null;
                 accessor = null;
 
                 disposedValue = true;

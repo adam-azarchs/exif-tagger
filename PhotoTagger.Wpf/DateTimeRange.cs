@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -47,6 +48,7 @@ namespace PhotoTagger.Wpf {
                 }
             }
             if (low.HasValue) {
+                Contract.Assert(high.HasValue);
                 return new DateTimeRange(low.Value, high.Value);
             } else {
                 return null;
@@ -61,7 +63,7 @@ namespace PhotoTagger.Wpf {
                 this.high.Equals(other.high);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             if (obj is DateTimeRange dtr) {
                 return this.Equals(dtr);
             } else if (obj is DateTime dt) {
@@ -81,7 +83,7 @@ namespace PhotoTagger.Wpf {
             if (low.Equals(high)) {
                 return low.ToString();
             } else {
-                return $"{low.ToString()} to {high.ToString()}";
+                return $"{low} to {high}";
             }
         }
 
@@ -125,7 +127,7 @@ namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(DateTime?), typeof(DateTimeRange))]
     [ValueConversion(typeof(DateTimeRange?), typeof(string))]
     public class DateTimeRangeToSingleDateConverter : IValueConverter {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is DateTimeRange range) {
                 if (parameter is bool useMax && useMax ||
                     parameter is string pstring && pstring == "true") {
@@ -148,7 +150,7 @@ namespace PhotoTagger.Wpf {
             }
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+        public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
             return Convert(value, targetType, parameter, culture);
         }
     }

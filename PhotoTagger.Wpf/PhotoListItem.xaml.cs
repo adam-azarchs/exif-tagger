@@ -1,4 +1,4 @@
-﻿using PhotoTagger.Imaging;
+using PhotoTagger.Imaging;
 using System.Windows;
 using System.Windows.Controls;
 

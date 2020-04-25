@@ -1,4 +1,4 @@
-﻿using PhotoTagger.Imaging;
+using PhotoTagger.Imaging;
 using PhotoTagger.Wpf;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -110,7 +110,7 @@ namespace PhotoTagger {
             DependencyProperty.Register(nameof(Location),
                 typeof(MultiGpsLocation), typeof(MultiPhoto),
                 new PropertyMetadata(changed));
-        
+
         public DateTimeRange? Dates {
             get {
                 return (DateTimeRange?)GetValue(DatesProperty);

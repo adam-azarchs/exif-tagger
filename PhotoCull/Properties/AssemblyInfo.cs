@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -9,7 +9,7 @@ using System.Windows;
 [assembly: AssemblyDescription("Tool for choosing the best from a set of similar photos.")]
 [assembly: AssemblyCompany("Adam Azarchs")]
 [assembly: AssemblyProduct("PhotoCull")]
-[assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: AssemblyCopyright("Copyright � 2018")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
@@ -23,4 +23,4 @@ using System.Windows;
                                               // app, or any theme specific resource dictionaries)
 )]
 
-[assembly: AssemblyVersion("0.1.0.*")]
+[assembly: AssemblyVersion("0.1.0.0")]

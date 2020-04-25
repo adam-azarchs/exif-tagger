@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("PhotoTaggerTests")]
 [assembly: AssemblyDescription("Unit tests for PhotoTagger")]
 [assembly: AssemblyProduct("PhotoTaggerTests")]
-[assembly: AssemblyCopyright("Copyright © Adam Azarchs 2017")]
+[assembly: AssemblyCopyright("Copyright � Adam Azarchs 2017")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -17,4 +17,4 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("1de57892-e66e-4d40-921c-9a7d12194ca4")]
 
-[assembly: AssemblyVersion("1.0.0.*")]
+[assembly: AssemblyVersion("0.1.0.0")]

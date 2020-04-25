@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Numerics;
 
@@ -36,7 +36,7 @@ namespace PhotoTagger.Imaging {
             if (degreesN == 0 &&
                 minutesN == 0 &&
                 secondsN == 0) {
-                sign = 0;
+                this.sign = 0;
             }
         }
 
@@ -95,7 +95,7 @@ namespace PhotoTagger.Imaging {
                 sign);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             if (obj is RationalDegrees other) {
                 return this.Equals(other);
             } else {
@@ -316,7 +316,7 @@ namespace PhotoTagger.Imaging {
             return new Rational(lhs.numerator * rhs, lhs.denominator);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             if (obj is Rational other) {
                 return this.Equals(other);
             } else {

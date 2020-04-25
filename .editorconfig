@@ -1,0 +1,17 @@
+# All files
+[*]
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+
+# CSharp code style settings:
+[*.cs]
+csharp_prefer_braces = true:none
+csharp_new_line_before_open_brace = false
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+
+# Xml files
+[*.xml]
+indent_size = 2

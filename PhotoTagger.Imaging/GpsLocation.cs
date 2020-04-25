@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -31,7 +31,7 @@ namespace PhotoTagger.Imaging {
             this.lon = lon;
         }
 
-        public static bool TryParse(string value, out GpsLocation result) {
+        public static bool TryParse(string value, out GpsLocation? result) {
             result = null;
             var match = LocRegex.Match(value);
             if (match == null || !match.Success || match.Groups.Count != 5) {
@@ -55,7 +55,7 @@ namespace PhotoTagger.Imaging {
             return true;
         }
 
-        public static bool TryParse(string value, IFormatProvider provider, out GpsLocation result) {
+        public static bool TryParse(string value, IFormatProvider provider, out GpsLocation? result) {
             result = null;
             var match = LocRegex.Match(value);
             if (match == null || !match.Success || match.Groups.Count != 5) {
@@ -119,7 +119,7 @@ namespace PhotoTagger.Imaging {
                 RationalDegrees.FromBytes(lonBytes, lonSignBytes[0] == West[0] ? -1 : 1));
         }
 
-        public bool Equals(GpsLocation other) {
+        public bool Equals(GpsLocation? other) {
             if (other == null) {
                 return false;
             } else {
@@ -128,7 +128,7 @@ namespace PhotoTagger.Imaging {
             }
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return this.Equals(obj as GpsLocation);
         }
 

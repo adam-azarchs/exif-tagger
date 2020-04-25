@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -30,10 +30,10 @@ namespace PhotoTagger.Imaging {
             makeIOThread();
         }
 
-        private BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>> metadataReads =
+        private readonly BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>> metadataReads =
             new BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>>();
 
-        private BlockingCollection<Tuple<Photo, Photo.Metadata>> fullsizeReads =
+        private readonly BlockingCollection<Tuple<Photo, Photo.Metadata>> fullsizeReads =
             new BlockingCollection<Tuple<Photo, Photo.Metadata>>();
 
         private static readonly int MaxIOThreads = Math.Min(Environment.ProcessorCount, 3);
@@ -45,7 +45,7 @@ namespace PhotoTagger.Imaging {
             }
         }
 
-        private async void ioWorker(object state) {
+        private async void ioWorker(object? state) {
             while (Interlocked.Increment(ref runningIOThreads) > MaxIOThreads) {
                 if (Interlocked.Decrement(ref runningIOThreads) >= MaxIOThreads) {
                     return;
@@ -270,7 +270,7 @@ namespace PhotoTagger.Imaging {
         /// given location rather than in-place, and the Photo is not reloaded.
         /// </param>
         /// <returns></returns>
-        public static async Task Commit(Photo photo, string destination = null) {
+        public static async Task Commit(Photo photo, string? destination = null) {
             var tempFile = destination ?? photo.FileName + DateTime.Now.Ticks.ToString() + ".tmp";
             Photo.Metadata newSource;
             try {
@@ -317,36 +317,37 @@ namespace PhotoTagger.Imaging {
 
         private static async Task<Photo.Metadata> reloadAndSave(
             Photo photo, bool forceJpeg, string destFile) {
-            using (var mmap = MemoryMappedFile.OpenExisting(
+            using var mmap = MemoryMappedFile.OpenExisting(
                                 mmapName(photo.FileName),
-                                MemoryMappedFileRights.Read)) {
-                using (var stream = new UnsafeMemoryMapStream(
-                            mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
-                            FileAccess.Read)) {
-                    (var sourceFrame, var format) = loadFrame(stream.Stream);
-                    var md = sourceFrame.Metadata.Clone() as BitmapMetadata;
-                    Photo.Metadata newMetadata = await Exif.SetMetadata(photo, md);
-                    newMetadata.Width = sourceFrame.PixelWidth;
-                    newMetadata.Height = sourceFrame.PixelHeight;
-                    BitmapEncoder encoder = forceJpeg ?
-                        new JpegBitmapEncoder() :
-                        BitmapEncoder.Create(format);
-                    encoder.Frames.Add(
-                        BitmapFrame.Create(
-                            sourceFrame,
-                            null,
-                            md,
-                            sourceFrame.ColorContexts));
-                    if (encoder is JpegBitmapEncoder jpg) {
-                        jpg.Rotation = Exif.SaveRotation(md);
-                    }
-                    sourceFrame = null;
-                    using (var outFile = new FileStream(destFile, FileMode.CreateNew)) {
-                        encoder.Save(outFile);
-                    }
-                    return newMetadata;
+                                MemoryMappedFileRights.Read);
+            using var stream = new UnsafeMemoryMapStream(
+                mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
+                FileAccess.Read);
+            BitmapEncoder encoder;
+            Photo.Metadata newMetadata;
+            {
+                (var sourceFrame, var format) = loadFrame(stream.Stream);
+                BitmapMetadata md = (BitmapMetadata)sourceFrame.Metadata.Clone();
+                newMetadata = await Exif.SetMetadata(photo, md);
+                newMetadata.Width = sourceFrame.PixelWidth;
+                newMetadata.Height = sourceFrame.PixelHeight;
+                encoder = forceJpeg ?
+                    new JpegBitmapEncoder() :
+                    BitmapEncoder.Create(format);
+                encoder.Frames.Add(
+                    BitmapFrame.Create(
+                        sourceFrame,
+                        null,
+                        md,
+                        sourceFrame.ColorContexts));
+                if (encoder is JpegBitmapEncoder jpg) {
+                    jpg.Rotation = Exif.SaveRotation(md);
                 }
             }
+            using (var outFile = new FileStream(destFile, FileMode.CreateNew)) {
+                encoder.Save(outFile);
+            }
+            return newMetadata;
         }
 
         private static ValueTuple<BitmapFrame, Guid> loadFrame(Stream stream) {

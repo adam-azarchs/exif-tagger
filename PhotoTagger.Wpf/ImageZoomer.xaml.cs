@@ -1,4 +1,4 @@
-﻿using PhotoTagger.Imaging;
+using PhotoTagger.Imaging;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -187,7 +187,7 @@ namespace PhotoTagger.Wpf {
         }
 
 
-        public ImageSource Source {
+        public ImageSource? Source {
             get {
                 return this.Photo?.FullImage;
             }
@@ -263,8 +263,8 @@ namespace PhotoTagger.Wpf {
             }
             try {
                 this.computing = true;
-                ImageSource source = this.Source;
-                if (source == null) {
+
+                if (this.Source == null) {
                     return;
                 }
 

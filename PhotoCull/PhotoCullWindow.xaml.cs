@@ -1,9 +1,10 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using PhotoCull.Properties;
 using PhotoTagger.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -149,7 +150,7 @@ namespace PhotoCull {
                     File.Delete(photo.FileName);
                 } catch (Exception ex) {
                     MessageBox.Show(this,
-                        $"Error deleting {photo.FileName}: \n{ex.ToString()}");
+                        $"Error deleting {photo.FileName}: \n{ex}");
                 }
             }).ToArray());
             this.deleteButton.IsEnabled = false;
@@ -160,7 +161,9 @@ namespace PhotoCull {
             if (Path.IsPathRooted(Settings.Default.DebugDest)) {
                 dirname = Settings.Default.DebugDest;
             } else {
-                dirname = Path.Combine(Path.GetDirectoryName(fileName),
+                var dir = Path.GetDirectoryName(fileName);
+                Contract.Assert(dir != null);
+                dirname = Path.Combine(dir,
                     Settings.Default.DebugDest);
             }
             Directory.CreateDirectory(dirname);
@@ -173,7 +176,9 @@ namespace PhotoCull {
                 return Path.Combine(Settings.Default.DebugDest,
                     "compare.pbtxt");
             } else {
-                return Path.Combine(Path.GetDirectoryName(fileName),
+                var dir = Path.GetDirectoryName(fileName);
+                Contract.Assert(dir != null);
+                return Path.Combine(dir,
                     Settings.Default.DebugDest,
                     "compare.pbtxt");
             }

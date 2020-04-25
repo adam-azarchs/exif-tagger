@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.IO.MemoryMappedFiles;
@@ -15,11 +15,11 @@ namespace PhotoTagger.Imaging {
             this.ShortTitle = f;
         }
 
-        private WeakReference<BitmapImage> fullImageRef = null;
+        private WeakReference<BitmapImage>? fullImageRef = null;
 
         private int fullIsLoading = 0;
 
-        private static CacheItemPolicy cachePolicy = new CacheItemPolicy() {
+        private static readonly CacheItemPolicy CachePolicy = new CacheItemPolicy() {
             SlidingExpiration = TimeSpan.FromSeconds(15),
         };
 
@@ -27,7 +27,7 @@ namespace PhotoTagger.Imaging {
         /// Begin the process of loading the full size image.
         /// </summary>
         public void Prefetch() {
-            BitmapImage img = null;
+            BitmapImage? img = null;
             var imageRef = this.fullImageRef;
             if (this.setFrom == null ||
                 this.loader == null) {
@@ -42,7 +42,7 @@ namespace PhotoTagger.Imaging {
                 MemoryCache.Default.Set(
                         this.FileName,
                         img,
-                        cachePolicy);
+                        CachePolicy);
             }
         }
 
@@ -53,16 +53,16 @@ namespace PhotoTagger.Imaging {
             MemoryCache.Default.Remove(this.FileName);
         }
 
-        public BitmapImage FullImage {
+        public BitmapImage? FullImage {
             get {
                 var imageRef = this.fullImageRef;
                 if (imageRef != null &&
-                    imageRef.TryGetTarget(out BitmapImage target) &&
+                    imageRef.TryGetTarget(out BitmapImage? target) &&
                     target != null) {
                     MemoryCache.Default.Set(
                         this.FileName,
                         target,
-                        cachePolicy);
+                        CachePolicy);
                     return target;
                 } else {
                     if (this.setFrom != null &&
@@ -95,7 +95,7 @@ namespace PhotoTagger.Imaging {
             }
         }
 
-        public BitmapImage ThumbImage {
+        public BitmapImage? ThumbImage {
             get {
                 return (BitmapImage)GetValue(ThumbImageProperty);
             }
@@ -122,17 +122,17 @@ namespace PhotoTagger.Imaging {
         }
 
         internal class Metadata {
-            public string Title;
-            public string Author;
+            public string? Title;
+            public string? Author;
             public DateTime? DateTaken;
-            public GpsLocation Location;
+            public GpsLocation? Location;
             public short Orientation;
             public int Width;
             public int Height;
         }
 
-        private Metadata setFrom = null;
-        internal ImageLoadManager loader = null;
+        private Metadata? setFrom = null;
+        internal ImageLoadManager? loader = null;
         private bool setting = true;
 
         internal void Set(Metadata from) {
@@ -248,7 +248,6 @@ namespace PhotoTagger.Imaging {
 
         [Pure]
         private static string firstLine(string text) {
-            Contract.Requires(text != null);
             var i = text.IndexOf('\n');
             if (i >= 0) {
                 return text.Substring(0, i);
@@ -297,11 +296,11 @@ namespace PhotoTagger.Imaging {
                 typeof(bool), typeof(Photo), new PropertyMetadata(false));
 
         // Memory map of the source image file.
-        internal MemoryMappedFile mmap;
-        internal UnsafeMemoryMapStream fullImageStream;
+        internal MemoryMappedFile? mmap;
+        internal UnsafeMemoryMapStream? fullImageStream;
         internal readonly SemaphoreSlim loadLock = new SemaphoreSlim(1, 1);
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         internal bool Disposed {
             get; private set;
@@ -364,7 +363,7 @@ namespace PhotoTagger.Imaging {
             this.loadLock.Dispose();
         }
 
-        public async Task Commit(string destination = null) {
+        public async Task Commit(string? destination = null) {
             if (this.IsChanged || destination != null) {
                 bool locked = false;
                 try {

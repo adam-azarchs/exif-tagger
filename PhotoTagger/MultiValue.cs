@@ -1,4 +1,4 @@
-﻿using PhotoTagger.Imaging;
+using PhotoTagger.Imaging;
 using PhotoTagger.Wpf;
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace PhotoTagger {
         public string Value => this.value;
         public Consistency State => this.state;
 
-        private static MultiString empty = new MultiString("",
+        private static readonly MultiString empty = new MultiString("",
             Consistency.Consistent);
 
         public static MultiString FromCollection<T>(
@@ -112,7 +112,7 @@ namespace PhotoTagger {
                 } else {
                     return null;
                 }
-            } else            if (value is MultiString ms) {
+            } else if (value is MultiString ms) {
                 if (targetType == typeof(Brush)) {
                     return this.Convert(ms.State, targetType, parameter, culture);
                 } else if (targetType == typeof(string)) {
