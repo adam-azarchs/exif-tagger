@@ -62,14 +62,27 @@ namespace PhotoCull {
                     "Jpeg images|" + jpegExtensions +
                     "|RAW images|" + rawExtensions +
                     "|TIFF images|" + tiffExtensions +
-                    "|All images|" + jpegExtensions + ";" + rawExtensions + ";" + tiffExtensions,
+                    "|Text files|*.txt" +
+                    "|All images|" + jpegExtensions + ";*.txt;" + rawExtensions + ";" + tiffExtensions,
                 Multiselect = true,
                 Title = "Choose images to load...",
                 ShowReadOnly = false,
                 ValidateNames = true
             };
             if ((dialog.ShowDialog(this) ?? false) && dialog.FileNames.Length > 0) {
-                addImages(dialog.FileNames);
+                var names = dialog.FileNames;
+                if (names.Length == 1 && names[0].EndsWith(".txt")) {
+                    try {
+                        names = File.ReadAllLines(names[0])
+                            .Select(line => line.Trim())
+                            .Where(line => line.Length > 0 && !line.StartsWith("#"))
+                            .ToArray();
+                    } catch (Exception ex) {
+                        MessageBox.Show(this,
+                            $"Error reading image list {names[0]}: \n{ex.ToString()}");
+                    }
+                }
+                addImages(names);
             }
             if (sender is Control c) {
                 c.IsEnabled = true;
