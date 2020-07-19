@@ -284,14 +284,6 @@ namespace PhotoTagger.Imaging {
             }
         }
 
-        public class PhotoGroup {
-            public int Order { get; set; }
-
-            public override string ToString() {
-                return Order.ToString();
-            }
-        }
-
         /// <summary>
         /// The grouping used for this photo.
         /// </summary>
@@ -302,7 +294,8 @@ namespace PhotoTagger.Imaging {
 
         public static readonly DependencyProperty GroupProperty =
             DependencyProperty.Register(nameof(Group),
-                typeof(PhotoGroup), typeof(Photo), new PropertyMetadata(new PhotoGroup()));
+                typeof(PhotoGroup), typeof(Photo),
+                new PropertyMetadata(PhotoGroup.Default));
 
         public HashSet<PhotoGroup> NotGroup { get; } = new HashSet<PhotoGroup>();
 

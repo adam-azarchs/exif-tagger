@@ -353,17 +353,17 @@ namespace PhotoCull {
             this.prefetch();
         }
 
-        private static Photo.PhotoGroup getNewGroup(ObservableCollection<Photo> photos, Photo move) {
+        private static PhotoGroup getNewGroup(ObservableCollection<Photo> photos, Photo move) {
             foreach (var p in photos) {
                 if (p.Group.Order > move.Group.Order && !move.NotGroup.Contains(p.Group)) {
                     return p.Group;
                 }
             }
-            return new Photo.PhotoGroup() { Order = move.NotGroup.Max(g => g.Order) + 1 };
+            return new PhotoGroup() { Order = move.NotGroup.Max(g => g.Order) + 1 };
         }
 
         public static void SortByGroup(ObservableCollection<Photo> photos) {
-            var groupCounts = new Dictionary<Photo.PhotoGroup, int>();
+            var groupCounts = new Dictionary<PhotoGroup, int>();
             foreach (var p in photos) {
                 groupCounts.TryGetValue(p.Group, out int count);
                 groupCounts[p.Group] = count + (p.MarkedForDeletion ? 0 : 1);

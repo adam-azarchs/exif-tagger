@@ -30,7 +30,11 @@
                     </CollectionViewSource.Source>
                     <CollectionViewSource.GroupDescriptions>
                         <PropertyGroupDescription PropertyName="MarkedForDeletion"/>
-                        <PropertyGroupDescription PropertyName="Group"/>
+                        <PropertyGroupDescription PropertyName="Group" >
+                            <PropertyGroupDescription.Converter>
+                                <local:PhotoGroupValueConverter/>
+                            </PropertyGroupDescription.Converter>
+                        </PropertyGroupDescription>
                     </CollectionViewSource.GroupDescriptions>
                     <CollectionViewSource.LiveGroupingProperties>
                         <s:String>MarkedForDeletion</s:String>
