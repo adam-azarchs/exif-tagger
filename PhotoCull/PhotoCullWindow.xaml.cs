@@ -241,18 +241,25 @@ namespace PhotoCull {
             }
             photos.Move(photos.IndexOf(reject), photos.Count - 1);
             reject.MarkedForDeletion = true;
-            var goodIndex = photos.IndexOf(good);
-            if (goodIndex != 0) {
-                photos.Move(goodIndex, 0);
-            }
             good.MarkedForDeletion = false;
             reject.Uncache();
+            var goodIndex = photos.IndexOf(good);
             if (photos.Any(p => p != good && p.Group == good.Group && !p.MarkedForDeletion)) {
+                if (goodIndex != 0) {
+                    photos.Move(goodIndex, 0);
+                }
                 int minOrder = photos.Min(p => p.Group.Order);
                 if (good.Group.Order != minOrder) {
                     good.Group.Order = minOrder - 1;
                 }
             } else {
+                var destIndex = photos
+                    .Select((photo, index) => (photo.MarkedForDeletion, index))
+                    .Where(pi => !pi.MarkedForDeletion)
+                    .Max(pi => pi.index);
+                if (destIndex > goodIndex) {
+                    photos.Move(goodIndex, destIndex);
+                }
                 // Move this group to the end.
                 int maxOrder = photos.Max(p => p.Group.Order);
                 if (good.Group.Order != maxOrder) {
@@ -313,8 +320,20 @@ namespace PhotoCull {
             if (photos.Count > 2) {
                 // Move the kept photo to the beginning.
                 var keepIndex = photos.IndexOf(keep);
-                if (keepIndex != 0) {
+                bool keepIsSingleton = photos.Any(p =>
+                    p != keep &&
+                    !p.MarkedForDeletion &&
+                    p.Group == keep.Group);
+                if (keepIsSingleton && keepIndex != 0) {
                     photos.Move(keepIndex, 0);
+                } else {
+                    var destIndex = photos
+                        .Select((photo, index) => (photo.MarkedForDeletion, index))
+                        .Where(pi => !pi.MarkedForDeletion)
+                        .Max(pi => pi.index);
+                    if (destIndex > keepIndex) {
+                        photos.Move(keepIndex, destIndex);
+                    }
                 }
                 // Move the punted photo to the end of the next group.
                 var moveIndex = photos.IndexOf(move);
@@ -328,11 +347,7 @@ namespace PhotoCull {
                         break;
                     }
                 }
-                if (photos.Any(p =>
-                        p != keep &&
-                        !p.MarkedForDeletion &&
-                        p.Group == keep.Group
-                    )) {
+                if (keepIsSingleton) {
                     // Move to beginning.
                     int minOrder = photos.Min(p => p.Group.Order);
                     if (keep.Group.Order != minOrder) {
@@ -363,10 +378,16 @@ namespace PhotoCull {
         }
 
         public static void SortByGroup(ObservableCollection<Photo> photos) {
+            if (photos.Count < 2) {
+                return;
+            }
             var groupCounts = new Dictionary<PhotoGroup, int>();
             foreach (var p in photos) {
                 groupCounts.TryGetValue(p.Group, out int count);
-                groupCounts[p.Group] = count + (p.MarkedForDeletion ? 0 : 1);
+                if (!p.MarkedForDeletion) {
+                    ++count;
+                }
+                groupCounts[p.Group] = count;
             }
             var newPhotos = photos.Select((ph, index) => (ph, index))
                 .OrderBy(pi => (pi.ph.MarkedForDeletion ? 2 : 0) + (groupCounts[pi.ph.Group] > 1 ? 0 : 1))
