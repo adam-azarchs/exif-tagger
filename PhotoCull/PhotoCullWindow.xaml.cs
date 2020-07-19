@@ -251,16 +251,15 @@ namespace PhotoCull {
                 int minOrder = photos.Min(p => p.Group.Order);
                 if (good.Group.Order != minOrder) {
                     good.Group.Order = minOrder - 1;
-                    SortByGroup(photos);
                 }
             } else {
                 // Move this group to the end.
                 int maxOrder = photos.Max(p => p.Group.Order);
                 if (good.Group.Order != maxOrder) {
                     good.Group.Order = maxOrder + 1;
-                    SortByGroup(photos);
                 }
             }
+            SortByGroup(photos);
             this.deleteButton.IsEnabled = true;
             this.photoList.SelectedValue = null;
             this.prefetch();
@@ -364,8 +363,13 @@ namespace PhotoCull {
         }
 
         public static void SortByGroup(ObservableCollection<Photo> photos) {
+            var groupCounts = new Dictionary<Photo.PhotoGroup, int>();
+            foreach (var p in photos) {
+                groupCounts.TryGetValue(p.Group, out int count);
+                groupCounts[p.Group] = count + (p.MarkedForDeletion ? 0 : 1);
+            }
             var newPhotos = photos.Select((ph, index) => (ph, index))
-                .OrderBy(pi => pi.ph.MarkedForDeletion ? 1 : 0)
+                .OrderBy(pi => (pi.ph.MarkedForDeletion ? 2 : 0) + (groupCounts[pi.ph.Group] > 1 ? 0 : 1))
                 .ThenBy(pi => pi.ph.Group.Order)
                 .ThenBy(pi => pi.index)
                 .Select(pi => pi.ph).ToArray();
