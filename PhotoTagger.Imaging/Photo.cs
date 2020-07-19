@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.Caching;
@@ -281,6 +283,28 @@ namespace PhotoTagger.Imaging {
                 }
             }
         }
+
+        public class PhotoGroup {
+            public int Order { get; set; }
+
+            public override string ToString() {
+                return Order.ToString();
+            }
+        }
+
+        /// <summary>
+        /// The grouping used for this photo.
+        /// </summary>
+        public PhotoGroup Group {
+            get { return (PhotoGroup)GetValue(GroupProperty); }
+            set { SetValue(GroupProperty, value); }
+        }
+
+        public static readonly DependencyProperty GroupProperty =
+            DependencyProperty.Register(nameof(Group),
+                typeof(PhotoGroup), typeof(Photo), new PropertyMetadata(new PhotoGroup()));
+
+        public HashSet<PhotoGroup> NotGroup { get; } = new HashSet<PhotoGroup>();
 
         public bool IsChanged {
             get {

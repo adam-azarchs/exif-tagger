@@ -27,9 +27,6 @@ namespace PhotoCull {
             get {
                 return (ObservableCollection<Photo>)GetValue(PhotosProperty);
             }
-            set {
-                SetValue(PhotosProperty, value);
-            }
         }
 
         public static readonly DependencyProperty PhotosProperty =
@@ -79,7 +76,7 @@ namespace PhotoCull {
                             .ToArray();
                     } catch (Exception ex) {
                         MessageBox.Show(this,
-                            $"Error reading image list {names[0]}: \n{ex.ToString()}");
+                            $"Error reading image list {names[0]}: \n{ex}");
                     }
                 }
                 addImages(names);
@@ -250,6 +247,20 @@ namespace PhotoCull {
             }
             good.MarkedForDeletion = false;
             reject.Uncache();
+            if (photos.Any(p => p != good && p.Group == good.Group && !p.MarkedForDeletion)) {
+                int minOrder = photos.Min(p => p.Group.Order);
+                if (good.Group.Order != minOrder) {
+                    good.Group.Order = minOrder - 1;
+                    SortByGroup(photos);
+                }
+            } else {
+                // Move this group to the end.
+                int maxOrder = photos.Max(p => p.Group.Order);
+                if (good.Group.Order != maxOrder) {
+                    good.Group.Order = maxOrder + 1;
+                    SortByGroup(photos);
+                }
+            }
             this.deleteButton.IsEnabled = true;
             this.photoList.SelectedValue = null;
             this.prefetch();
@@ -264,7 +275,7 @@ namespace PhotoCull {
         }
 
         private async Task distinct(bool moveFirst) {
-            var photos = this.Photos;
+            ObservableCollection<Photo> photos = this.Photos;
             if (photos.Count < 2) {
                 return;
             }
@@ -287,26 +298,80 @@ namespace PhotoCull {
             }
             keep.MarkedForDeletion = false;
             move.MarkedForDeletion = false;
+            // Check if the kept one was actually the last one in the group, in
+            // which case we're done with it and want to move it to the end
+            // instead.
+            if (!photos.Any(p => p != keep && !p.MarkedForDeletion && p.Group == keep.Group) &&
+                photos.Any(p => p != move && !p.MarkedForDeletion && p.Group == move.Group)) {
+                var t = move;
+                move = keep;
+                keep = t;
+            }
+            move.NotGroup.Add(keep.Group);
+            if (move.Group == keep.Group) {
+                move.Group = getNewGroup(photos, move);
+            }
             if (photos.Count > 2) {
+                // Move the kept photo to the beginning.
                 var keepIndex = photos.IndexOf(keep);
                 if (keepIndex != 0) {
                     photos.Move(keepIndex, 0);
                 }
-                var newGroupIndex = photos.IndexOf(move);
-                int i = -1;
-                foreach (var photo in photos) {
-                    if (photo.MarkedForDeletion) {
+                // Move the punted photo to the end of the next group.
+                var moveIndex = photos.IndexOf(move);
+                for (int i = moveIndex + 1; i <= photos.Count; i++) {
+                    if (i == photos.Count ||
+                        photos[i].MarkedForDeletion ||
+                        photos[i].Group.Order > move.Group.Order) {
+                        if (i != moveIndex) {
+                            photos.Move(moveIndex, i - 1);
+                        }
                         break;
                     }
-                    ++i;
                 }
-                if (i != newGroupIndex) {
-                    photos.Move(newGroupIndex, i);
+                if (photos.Any(p =>
+                        p != keep &&
+                        !p.MarkedForDeletion &&
+                        p.Group == keep.Group
+                    )) {
+                    // Move to beginning.
+                    int minOrder = photos.Min(p => p.Group.Order);
+                    if (keep.Group.Order != minOrder) {
+                        keep.Group.Order = minOrder - 1;
+                    }
+                } else {
+                    // Move to the end.
+                    int maxOrder = photos.Max(p => p.Group.Order);
+                    if (keep.Group.Order != maxOrder) {
+                        keep.Group.Order = maxOrder + 1;
+                    }
                 }
+                SortByGroup(photos);
             }
+
             this.deleteButton.IsEnabled = photos.Any(p => p.MarkedForDeletion);
             this.photoList.SelectedValue = null;
             this.prefetch();
+        }
+
+        private static Photo.PhotoGroup getNewGroup(ObservableCollection<Photo> photos, Photo move) {
+            foreach (var p in photos) {
+                if (p.Group.Order > move.Group.Order && !move.NotGroup.Contains(p.Group)) {
+                    return p.Group;
+                }
+            }
+            return new Photo.PhotoGroup() { Order = move.NotGroup.Max(g => g.Order) + 1 };
+        }
+
+        public static void SortByGroup(ObservableCollection<Photo> photos) {
+            var newPhotos = photos.Select((ph, index) => (ph, index))
+                .OrderBy(pi => pi.ph.MarkedForDeletion ? 1 : 0)
+                .ThenBy(pi => pi.ph.Group.Order)
+                .ThenBy(pi => pi.index)
+                .Select(pi => pi.ph).ToArray();
+            for (int i = 0; i < newPhotos.Length; i++) {
+                photos[i] = newPhotos[i];
+            }
         }
 
         private static bool debugging() {

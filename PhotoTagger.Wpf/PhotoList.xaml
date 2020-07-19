@@ -5,6 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="clr-namespace:PhotoTagger.Wpf"
              xmlns:ptimg="clr-namespace:PhotoTagger.Imaging;assembly=PhotoTagger.Imaging"
+             xmlns:cm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:s="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="100">
     <Grid>
@@ -19,14 +21,47 @@
         <ListBox Grid.Row="1"
                  Name="ListBox"
                  SelectionChanged="onSelectionChanged">
+            <ListBox.Resources>
+                <CollectionViewSource x:Key="PhotosView"
+                                      IsLiveGroupingRequested="True">
+                    <CollectionViewSource.Source>
+                        <Binding Path="Photos"
+                                 ElementName="photoList" />
+                    </CollectionViewSource.Source>
+                    <CollectionViewSource.GroupDescriptions>
+                        <PropertyGroupDescription PropertyName="MarkedForDeletion"/>
+                        <PropertyGroupDescription PropertyName="Group"/>
+                    </CollectionViewSource.GroupDescriptions>
+                    <CollectionViewSource.LiveGroupingProperties>
+                        <s:String>MarkedForDeletion</s:String>
+                        <s:String>Group</s:String>
+                    </CollectionViewSource.LiveGroupingProperties>
+                </CollectionViewSource>
+            </ListBox.Resources>
             <ListBox.SelectionMode>
                 <Binding Path="SelectionMode"
                          ElementName="photoList" />
             </ListBox.SelectionMode>
             <ListBox.ItemsSource>
-                <Binding Path="Photos"
-                         ElementName="photoList" />
+                <Binding Source="{StaticResource PhotosView}"/>
             </ListBox.ItemsSource>
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <DataTemplate.Resources>
+                                <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+                            </DataTemplate.Resources>
+                            <Separator>
+                                <Separator.Visibility>
+                                    <Binding Converter="{StaticResource BooleanToVisibilityConverter}"
+                                             Path="IsBottomLevel" />
+                                </Separator.Visibility>
+                            </Separator>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type ptimg:Photo}">
                     <local:PhotoListItem Photo="{Binding Mode=OneWay}" />
