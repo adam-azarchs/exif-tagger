@@ -4,6 +4,8 @@ using System.Collections.Specialized;
 using System.Diagnostics.Contracts;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PhotoTagger.Wpf {
     /// <summary>
@@ -99,5 +101,62 @@ namespace PhotoTagger.Wpf {
             DependencyProperty.Register(nameof(ThumbnailHeight), typeof(double),
                 typeof(PhotoList),
                 new PropertyMetadata(48.0));
+
+        private Point dragStart;
+
+        private void onMouseDown(object sender, MouseButtonEventArgs e) {
+            this.dragStart = e.GetPosition(this);
+        }
+
+        private void onMouseMove(object sender, MouseEventArgs e) {
+            e.Handled = false;
+            if (e.LeftButton == MouseButtonState.Pressed && e.RightButton == MouseButtonState.Released) {
+                var diff = dragStart - e.GetPosition(this);
+                if (diff.Y < SystemParameters.MinimumVerticalDragDistance &&
+                    -diff.Y < SystemParameters.MinimumVerticalDragDistance) {
+                    return;
+                }
+                var item = findAncestor(e.OriginalSource as DependencyObject);
+                if (item == null) {
+                    return;
+                }
+                DragDrop.DoDragDrop(item,
+                    new DataObject(typeof(PhotoListItem), item),
+                    DragDropEffects.Move);
+                e.Handled = true;
+            }
+        }
+
+        private void onDrop(object sender, DragEventArgs e) {
+            e.Handled = false;
+            if (e.Data.GetData(typeof(PhotoListItem)) is PhotoListItem item) {
+                var target = findAncestor(e.OriginalSource as DependencyObject);
+                if (target == null) {
+                    return;
+                }
+                e.Handled = true;
+                if (target.Photo.Group != item.Photo.Group) {
+                    item.Photo.Group = target.Photo.Group;
+                }
+                var photos = this.Photos;
+                var srcIndex = photos.IndexOf(item.Photo);
+                var dstIndex = photos.IndexOf(target.Photo);
+                if (srcIndex > dstIndex+1) {
+                    photos.Move(srcIndex, dstIndex + 1);
+                } else if (dstIndex > srcIndex + 1) {
+                    photos.Move(srcIndex, dstIndex);
+                }
+            }
+        }
+
+        private static PhotoListItem? findAncestor(DependencyObject? current) {
+            if (current == null) {
+                return null;
+            }
+            if (current is PhotoListItem c) {
+                return c;
+            }
+            return findAncestor(VisualTreeHelper.GetParent(current));
+        }
     }
 }

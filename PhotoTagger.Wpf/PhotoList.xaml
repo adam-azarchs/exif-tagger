@@ -20,7 +20,11 @@
         </StackPanel>
         <ListBox Grid.Row="1"
                  Name="ListBox"
-                 SelectionChanged="onSelectionChanged">
+                 SelectionChanged="onSelectionChanged"
+                 PreviewMouseLeftButtonDown="onMouseDown"
+                 MouseMove="onMouseMove"
+                 AllowDrop="True"
+                 Drop="onDrop">
             <ListBox.Resources>
                 <CollectionViewSource x:Key="PhotosView"
                                       IsLiveGroupingRequested="True">
