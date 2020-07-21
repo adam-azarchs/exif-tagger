@@ -21,55 +21,16 @@
         <ListBox Grid.Row="1"
                  Name="ListBox"
                  SelectionChanged="onSelectionChanged"
-                 PreviewMouseLeftButtonDown="onMouseDown"
-                 MouseMove="onMouseMove"
                  AllowDrop="True"
                  Drop="onDrop">
-            <ListBox.Resources>
-                <CollectionViewSource x:Key="PhotosView"
-                                      IsLiveGroupingRequested="True">
-                    <CollectionViewSource.Source>
-                        <Binding Path="Photos"
-                                 ElementName="photoList" />
-                    </CollectionViewSource.Source>
-                    <CollectionViewSource.GroupDescriptions>
-                        <PropertyGroupDescription PropertyName="MarkedForDeletion"/>
-                        <PropertyGroupDescription PropertyName="Group" >
-                            <PropertyGroupDescription.Converter>
-                                <local:PhotoGroupValueConverter/>
-                            </PropertyGroupDescription.Converter>
-                        </PropertyGroupDescription>
-                    </CollectionViewSource.GroupDescriptions>
-                    <CollectionViewSource.LiveGroupingProperties>
-                        <s:String>MarkedForDeletion</s:String>
-                        <s:String>Group</s:String>
-                    </CollectionViewSource.LiveGroupingProperties>
-                </CollectionViewSource>
-            </ListBox.Resources>
             <ListBox.SelectionMode>
                 <Binding Path="SelectionMode"
                          ElementName="photoList" />
             </ListBox.SelectionMode>
             <ListBox.ItemsSource>
-                <Binding Source="{StaticResource PhotosView}"/>
+                <Binding Path="Photos"
+                         ElementName="photoList" />
             </ListBox.ItemsSource>
-            <ListBox.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <DataTemplate.Resources>
-                                <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-                            </DataTemplate.Resources>
-                            <Separator>
-                                <Separator.Visibility>
-                                    <Binding Converter="{StaticResource BooleanToVisibilityConverter}"
-                                             Path="IsBottomLevel" />
-                                </Separator.Visibility>
-                            </Separator>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type ptimg:Photo}">
                     <local:PhotoListItem Photo="{Binding Mode=OneWay}" />

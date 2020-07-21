@@ -317,6 +317,7 @@ namespace PhotoCull {
             if (move.Group == keep.Group) {
                 move.Group = getNewGroup(photos, move);
             }
+            keep.NotGroup.Add(move.Group);
             if (photos.Count > 2) {
                 // Move the kept photo to the beginning.
                 var keepIndex = photos.IndexOf(keep);
