@@ -321,12 +321,14 @@ namespace PhotoCull {
             if (photos.Count > 2) {
                 // Move the kept photo to the beginning.
                 var keepIndex = photos.IndexOf(keep);
-                bool keepIsSingleton = photos.Any(p =>
+                bool keepIsntSingleton = photos.Any(p =>
                     p != keep &&
                     !p.MarkedForDeletion &&
                     p.Group == keep.Group);
-                if (keepIsSingleton && keepIndex != 0) {
-                    photos.Move(keepIndex, 0);
+                if (keepIsntSingleton) {
+                    if (keepIndex != 0) {
+                        photos.Move(keepIndex, 0);
+                    }
                 } else {
                     var destIndex = photos
                         .Select((photo, index) => (photo.MarkedForDeletion, index))
@@ -348,7 +350,7 @@ namespace PhotoCull {
                         break;
                     }
                 }
-                if (keepIsSingleton) {
+                if (keepIsntSingleton) {
                     // Move to beginning.
                     int minOrder = photos.Min(p => p.Group.Order);
                     if (keep.Group.Order != minOrder) {
