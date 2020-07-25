@@ -109,6 +109,9 @@ namespace PhotoTagger.Wpf {
                     return;
                 }
                 e.Handled = true;
+                if (target == item) {
+                    return;
+                }
                 if (target.Group != item.Group) {
                     item.Group = target.Group;
                 }

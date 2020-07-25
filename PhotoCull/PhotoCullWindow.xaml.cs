@@ -396,9 +396,18 @@ namespace PhotoCull {
                 .OrderBy(pi => (pi.ph.MarkedForDeletion ? 2 : 0) + (groupCounts[pi.ph.Group] > 1 ? 0 : 1))
                 .ThenBy(pi => pi.ph.Group.Order)
                 .ThenBy(pi => pi.index)
-                .Select(pi => pi.ph).ToArray();
-            for (int i = 0; i < newPhotos.Length; i++) {
-                photos[i] = newPhotos[i];
+                .Select(pi => pi.index).ToArray();
+            for (int i = 0; i < newPhotos.Length; ++i) {
+                if (newPhotos[i] != i) {
+                    Contract.Assert(newPhotos[i] > i);
+                    photos.Move(newPhotos[i], i);
+                    // This invalidates the source indicies for subsequent photos.
+                    for (int j = i+1;j<newPhotos.Length;++j) {
+                        if (newPhotos[j] < newPhotos[i]) {
+                            ++newPhotos[j];
+                        }
+                    }
+                }
             }
         }
 
