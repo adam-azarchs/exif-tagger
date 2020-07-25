@@ -55,6 +55,25 @@ namespace PhotoTagger.Imaging {
             MemoryCache.Default.Remove(this.FileName);
         }
 
+        /// <summary>
+        /// Returns the value of <see cref="FullImage"/> if it's already loaded.
+        /// </summary>
+        public BitmapImage? FullImageIfLoaded {
+            get {
+                var imageRef = this.fullImageRef;
+                if (imageRef != null &&
+                    imageRef.TryGetTarget(out BitmapImage? target) &&
+                    target != null) {
+                    MemoryCache.Default.Set(
+                        this.FileName,
+                        target,
+                        CachePolicy);
+                    return target;
+                }
+                return null;
+            }
+        }
+
         public BitmapImage? FullImage {
             get {
                 var imageRef = this.fullImageRef;

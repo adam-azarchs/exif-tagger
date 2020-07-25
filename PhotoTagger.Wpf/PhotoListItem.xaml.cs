@@ -43,7 +43,7 @@ namespace PhotoTagger.Wpf {
                 }
 
                 var data = new DataObject(typeof(Photo), this.Photo);
-                BitmapImage? img = this.Photo.FullImage;
+                BitmapImage? img = this.Photo.FullImageIfLoaded;
                 if (img != null) {
                     data.SetImage(img);
                 }

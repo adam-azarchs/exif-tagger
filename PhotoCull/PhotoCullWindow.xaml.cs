@@ -402,7 +402,7 @@ namespace PhotoCull {
                     Contract.Assert(newPhotos[i] > i);
                     photos.Move(newPhotos[i], i);
                     // This invalidates the source indicies for subsequent photos.
-                    for (int j = i+1;j<newPhotos.Length;++j) {
+                    for (int j = i + 1; j < newPhotos.Length; ++j) {
                         if (newPhotos[j] < newPhotos[i]) {
                             ++newPhotos[j];
                         }
