@@ -42,7 +42,20 @@ namespace PhotoTagger.Wpf {
 
         public static readonly DependencyProperty PhotosProperty =
             DependencyProperty.Register(nameof(Photos),
-                typeof(ObservableCollection<Photo>), typeof(PhotoList));
+                typeof(ObservableCollection<Photo>), typeof(PhotoList), new PropertyMetadata(onPhotosListChanged));
+
+        private static void onPhotosListChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            d.SetValue(GroupedPhotosProperty, new GroupedPhotosView((ObservableCollection<Photo>)e.NewValue));
+        }
+
+        public GroupedPhotosView GroupedPhotos {
+            get { return (GroupedPhotosView)GetValue(GroupedPhotosProperty); }
+            private set { SetValue(GroupedPhotosProperty, value); }
+        }
+
+        public static readonly DependencyProperty GroupedPhotosProperty =
+            DependencyProperty.Register(nameof(GroupedPhotos),
+                typeof(GroupedPhotosView), typeof(PhotoList));
 
         public ObservableCollection<Photo> Selected {
             get;
@@ -118,7 +131,7 @@ namespace PhotoTagger.Wpf {
                 var photos = this.Photos;
                 var srcIndex = photos.IndexOf(item);
                 var dstIndex = photos.IndexOf(target);
-                if (srcIndex > dstIndex+1) {
+                if (srcIndex > dstIndex + 1) {
                     photos.Move(srcIndex, dstIndex + 1);
                 } else if (dstIndex > srcIndex + 1) {
                     photos.Move(srcIndex, dstIndex);

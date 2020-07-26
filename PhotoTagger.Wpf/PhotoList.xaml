@@ -9,6 +9,9 @@
              xmlns:s="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="100">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -27,8 +30,22 @@
                 <Binding Path="SelectionMode"
                          ElementName="photoList" />
             </ListBox.SelectionMode>
+            <ListBox.GroupStyle>
+                <GroupStyle HidesIfEmpty="True">
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <Separator>
+                                <Separator.Visibility>
+                                    <Binding Converter="{StaticResource BooleanToVisibilityConverter}"
+                                             Path="IsBottomLevel" />
+                                </Separator.Visibility>
+                            </Separator>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListBox.GroupStyle>
             <ListBox.ItemsSource>
-                <Binding Path="Photos"
+                <Binding Path="GroupedPhotos"
                          ElementName="photoList" />
             </ListBox.ItemsSource>
             <ListBox.ItemTemplate>

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.Caching;
@@ -209,7 +208,12 @@ namespace PhotoTagger.Imaging {
                 return (bool)GetValue(MarkedForDeletionProperty);
             }
             set {
+                bool change = value != MarkedForDeletion;
                 SetValue(MarkedForDeletionProperty, value);
+                if (change) {
+                    PropertyChanged?.Invoke(this,
+                        new PropertyChangedEventArgs(nameof(MarkedForDeletion)));
+                }
             }
         }
 
