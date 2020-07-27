@@ -66,23 +66,52 @@ namespace PhotoCull {
                 ShowReadOnly = false,
                 ValidateNames = true
             };
-            if ((dialog.ShowDialog(this) ?? false) && dialog.FileNames.Length > 0) {
-                var names = dialog.FileNames;
-                if (names.Length == 1 && names[0].EndsWith(".txt")) {
-                    try {
-                        names = File.ReadAllLines(names[0])
-                            .Select(line => line.Trim())
-                            .Where(line => line.Length > 0 && !line.StartsWith("#"))
-                            .ToArray();
-                    } catch (Exception ex) {
-                        MessageBox.Show(this,
-                            $"Error reading image list {names[0]}: \n{ex}");
+            try {
+                if ((dialog.ShowDialog(this) ?? false) && dialog.FileNames.Length > 0) {
+                    var names = dialog.FileNames;
+                    if (names.Length == 1 && names[0].EndsWith(".txt")) {
+                        string[] lines;
+                        try {
+                            lines = File.ReadAllLines(names[0])
+                                .Select(line => line.Trim())
+                                .Where(line => line.Length > 0 &&
+                                       (line.StartsWith("# Group") ||
+                                        !line.StartsWith("#")))
+                                .ToArray();
+                        } catch (Exception ex) {
+                            MessageBox.Show(this,
+                                $"Error reading image list {names[0]}: \n{ex}");
+                            return;
+                        }
+                        int start = 0;
+                        PhotoGroup? group = null;
+                        for (int i = 0; i < lines.Length; i++) {
+                            var line = lines[i];
+                            if (line.StartsWith("#")) {
+                                if (start < i) {
+                                    addImages(
+                                        new ArraySegment<string>(lines, start, i - start),
+                                        group);
+                                    group = new PhotoGroup {
+                                        Order = this.Photos.Max(p => p.Group.Order) + 1
+                                    };
+                                }
+                                start = i + 1;
+                            }
+                        }
+                        if (start < lines.Length) {
+                            addImages(
+                                new ArraySegment<string>(lines, start, lines.Length - start),
+                                group);
+                        }
+                    } else {
+                        addImages(names);
                     }
                 }
-                addImages(names);
-            }
-            if (sender is Control c) {
-                c.IsEnabled = true;
+            } finally {
+                if (sender is Control c) {
+                    c.IsEnabled = true;
+                }
             }
         }
 
@@ -96,7 +125,7 @@ namespace PhotoCull {
             }
         }
 
-        private void addImages(string[] photos) {
+        private void addImages(IEnumerable<string> photos, PhotoGroup? group = null) {
             var photoSet = new HashSet<string>(photos);
             foreach (var p in this.Photos) {
                 photoSet.Remove(p.FileName);
@@ -114,6 +143,9 @@ namespace PhotoCull {
             }
             foreach (var filename in photoSet) {
                 var photo = new Photo(filename);
+                if (group != null) {
+                    photo.Group = group;
+                }
                 loader.EnqueueLoad(photo, this.Photos);
                 if (firstMarked >= 0) {
                     this.Photos.Insert(firstMarked++, photo);
