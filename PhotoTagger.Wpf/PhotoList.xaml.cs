@@ -136,6 +136,9 @@ namespace PhotoTagger.Wpf {
                 } else if (dstIndex > srcIndex + 1) {
                     photos.Move(srcIndex, dstIndex);
                 }
+                if (dstIndex == 0) {
+                    this.ListBox.SelectedItems.Clear();
+                }
             }
         }
 
