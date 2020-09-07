@@ -1,4 +1,5 @@
 using PhotoTagger.Imaging;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.Contracts;
@@ -139,8 +140,24 @@ namespace PhotoTagger.Wpf {
                 if (dstIndex == 0) {
                     this.ListBox.SelectedItems.Clear();
                 }
+                this.DragDropMove?.Invoke(sender,
+                    new DragDropPhotoEventArgs(e, item, target));
             }
         }
+
+        public class DragDropPhotoEventArgs : RoutedEventArgs {
+            public DragDropPhotoEventArgs(RoutedEventArgs e,
+                Photo item, Photo target) : base(e.RoutedEvent, e.Source) {
+                this.Item = item;
+                this.Target = target;
+            }
+            public Photo Item { get; }
+            public Photo Target { get; }
+        }
+
+        public delegate void DragDropPhotoEventHandler(object sender, DragDropPhotoEventArgs e);
+
+        public event DragDropPhotoEventHandler? DragDropMove;
 
         private static Photo? findPhoto(DependencyObject? current) {
             if (current == null) {

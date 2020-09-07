@@ -42,7 +42,8 @@
                              SelectionMode="Multiple"
                              ThumbnailHeight="{Binding ThumbnailHeight, ElementName=window}"
                              Photos="{Binding Photos, ElementName=window}"
-                             OnSelectionChanged="onSelectionChanged"/>
+                             OnSelectionChanged="onSelectionChanged"
+                             DragDropMove="onDragDropMove"/>
             <StackPanel Grid.Row="1">
                 <Button Content="Add images..."
                         Click="addImagesEvent" />

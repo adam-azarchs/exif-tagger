@@ -113,6 +113,10 @@ namespace PhotoTagger.Imaging {
             }
         }
 
+        public void RefreshNow() {
+            this.RefreshOrDefer();
+        }
+
         private readonly GroupedPhotosDescription description;
 
         public override bool PassesFilter(object item) {

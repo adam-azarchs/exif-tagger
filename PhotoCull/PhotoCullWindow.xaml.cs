@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using PhotoCull.Properties;
 using PhotoTagger.Imaging;
+using PhotoTagger.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -90,6 +91,7 @@ namespace PhotoCull {
                         for (int i = 0; i < lines.Length; i++) {
                             var line = lines[i];
                             if (line.StartsWith("#")) {
+                                this.loadedGroupedList = true;
                                 if (start < i) {
                                     if (i == start + 1) {
                                         if (group == null) {
@@ -131,6 +133,8 @@ namespace PhotoCull {
         private readonly ImageLoadManager loader = new ImageLoadManager() {
             ThumbnailHeight = Settings.Default.ThumbnailHeight
         };
+
+        private bool loadedGroupedList;
 
         public double ThumbnailHeight {
             get {
@@ -182,6 +186,9 @@ namespace PhotoCull {
                 this.Photos.Remove(p);
                 p.Dispose();
             }
+            if (this.Photos.Count < 2) {
+                this.loadedGroupedList = false;
+            }
         }
 
         public void Dispose() {
@@ -191,6 +198,7 @@ namespace PhotoCull {
                 this.Photos.RemoveAt(i);
                 p.Dispose();
             }
+            this.loadedGroupedList = false;
         }
 
         private async void deleteEvent(object sender, RoutedEventArgs e) {
@@ -318,17 +326,19 @@ namespace PhotoCull {
             Directory.CreateDirectory(Settings.Default.DebugDest);
             var rname = debugName(reject.FileName);
             var gname = debugName(good.FileName);
+            var tasks = new List<Task>(3);
             if (!File.Exists(gname)) {
-                await good.Commit(destination: gname);
+                tasks.Add(good.Commit(destination: gname));
             }
             if (!File.Exists(rname)) {
-                await reject.Commit(destination: rname);
+                tasks.Add(reject.Commit(destination: rname));
             }
-            File.AppendAllText(debugDataName(reject.FileName),
+            tasks.Add(File.AppendAllTextAsync(debugDataName(reject.FileName),
                 $"compared {{\n" +
                 $"  better: \"{Path.GetFileName(gname)}\"\n" +
                 $"  worse: \"{Path.GetFileName(rname)}\"\n" +
-                $"}}\n");
+                $"}}\n"));
+            await Task.WhenAll(tasks);
         }
 
         private async void onDistinctFirst(object sender, RoutedEventArgs e) {
@@ -426,17 +436,28 @@ namespace PhotoCull {
         private async Task logDistinct(Photo keep, Photo move) {
             var kname = debugName(keep.FileName);
             var nname = debugName(move.FileName);
+            var tasks = new List<Task>(3);
             if (!File.Exists(kname)) {
-                await keep.Commit(destination: kname);
+                tasks.Add(keep.Commit(destination: kname));
             }
             if (!File.Exists(nname)) {
-                await move.Commit(destination: nname);
+                tasks.Add(move.Commit(destination: nname));
             }
-            File.AppendAllText(debugDataName(move.FileName),
-                $"distinct {{\n" +
-                $"  image: \"{Path.GetFileName(kname)}\"\n" +
-                $"  image: \"{Path.GetFileName(nname)}\"\n" +
-                $"}}\n");
+            if (this.loadedGroupedList) {
+                tasks.Add(File.AppendAllTextAsync(debugDataName(move.FileName),
+                    $"distinct {{\n" +
+                    $"  image: \"{Path.GetFileName(kname)}\"\n" +
+                    $"  image: \"{Path.GetFileName(nname)}\"\n" +
+                    $"  kind: DISIMILAR\n" +
+                    $"}}\n"));
+            } else {
+                tasks.Add(File.AppendAllTextAsync(debugDataName(move.FileName),
+                    $"distinct {{\n" +
+                    $"  image: \"{Path.GetFileName(kname)}\"\n" +
+                    $"  image: \"{Path.GetFileName(nname)}\"\n" +
+                    $"}}\n"));
+            }
+            await Task.WhenAll(tasks);
         }
 
         private static PhotoGroup getNewGroup(ObservableCollection<Photo> photos, Photo move) {
@@ -511,6 +532,30 @@ namespace PhotoCull {
                 // Otherwise we're just comparing that photo to itself.
                 this.SelectedPhotos.RemoveAt(0);
             }
+        }
+
+        private async void onDragDropMove(object sender, PhotoList.DragDropPhotoEventArgs e) {
+            var tasks = new List<Task>(3);
+            if (debugging()) {
+                var item = e.Item;
+                var target = e.Target;
+                var iname = debugName(item.FileName);
+                var tname = debugName(target.FileName);
+                if (!File.Exists(iname)) {
+                    tasks.Add(item.Commit(destination: iname));
+                }
+                if (!File.Exists(tname)) {
+                    tasks.Add(target.Commit(destination: tname));
+                }
+                tasks.Add(File.AppendAllTextAsync(debugDataName(target.FileName),
+                        $"distinct {{\n" +
+                        $"  image: \"{Path.GetFileName(iname)}\"\n" +
+                        $"  image: \"{Path.GetFileName(tname)}\"\n" +
+                        $"  kind: SIMILAR\n" +
+                        $"}}\n"));
+            }
+            this.photoList.GroupedPhotos.RefreshNow();
+            await Task.WhenAll(tasks);
         }
     }
 }
