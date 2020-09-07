@@ -89,74 +89,27 @@ namespace PhotoTagger.Imaging {
             description = new GroupedPhotosDescription(source);
             this.GroupDescriptions.Add(description);
             this.Comparer = description.CustomSort;
-            this.photoGroups = new HashSet<PhotoGroup>(source.Select(p => p.Group));
-            foreach (var g in this.photoGroups) {
-                g.PropertyChanged += onGroupOrderChanged;
-                description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(0, g));
-                description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(1, g));
-            }
-            source.CollectionChanged += onSourceChanged;
-            foreach (var p in source) {
-                p.PropertyChanged += onPhotoChanged;
-            }
             this.IsLiveGrouping = true;
-            this.IsLiveSorting = true;
+            this.IsLiveSorting = false;
+            this.IsLiveFiltering = false;
             this.ActiveComparer = description.CustomSort;
+            description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(0, PhotoGroup.Default));
+            description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(1, PhotoGroup.Default));
         }
 
-        private void onPhotoChanged(object sender, PropertyChangedEventArgs e) {
-            if (sender is Photo p) {
-                if (e.PropertyName == nameof(Photo.Group)) {
-                    if (photoGroups.Add(p.Group)) {
-                        p.Group.PropertyChanged += onGroupOrderChanged;
-                        description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(0, p.Group));
-                        description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(1, p.Group));
-                    }
-                    this.RefreshOrDefer();
-                } else if (e.PropertyName == nameof(Photo.MarkedForDeletion)) {
-                    this.RefreshOrDefer();
-                }
-            }
+        public IDisposable RefreshWhenDone() {
+            return new deferredRefresh(this);
         }
 
-        private void onSourceChanged(object sender, NotifyCollectionChangedEventArgs e) {
-            if (e.OldItems != null) {
-                foreach (var item in e.OldItems) {
-                    if (item is Photo p) {
-                        p.PropertyChanged -= onPhotoChanged;
-                    }
-                }
-            }
-            if (e.NewItems != null) {
-                bool newGroups = false;
-                foreach (var item in e.NewItems) {
-                    if (item is Photo p) {
-                        if (photoGroups.Add(p.Group)) {
-                            p.Group.PropertyChanged += onGroupOrderChanged;
-                            description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(0, p.Group));
-                            description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(1, p.Group));
-                            newGroups = true;
-                        }
-                        p.PropertyChanged += onPhotoChanged;
-                    }
-                }
-                if (newGroups) {
-                    this.RefreshOrDefer();
-                }
-            }
-            if (e.Action == NotifyCollectionChangedAction.Move) {
-                this.RefreshOrDefer();
-            }
-        }
+        private sealed class deferredRefresh : IDisposable {
+            private readonly GroupedPhotosView parent;
 
-        private void onGroupOrderChanged(object sender, PropertyChangedEventArgs e) {
-            if (sender is PhotoGroup g) {
-                if (e.PropertyName == nameof(PhotoGroup.Order)) {
-                    // Force group ordering to be recalculated.
-                    description.GroupNames.Remove(new ValueTuple<int, PhotoGroup>(0, g));
-                    description.GroupNames.Add(new ValueTuple<int, PhotoGroup>(0, g));
-                    this.RefreshOrDefer();
-                }
+            public deferredRefresh(GroupedPhotosView parent) {
+                this.parent = parent;
+            }
+
+            public void Dispose() {
+                this.parent.RefreshOrDefer();
             }
         }
 
@@ -167,7 +120,5 @@ namespace PhotoTagger.Imaging {
         }
 
         public override IComparer Comparer { get; }
-
-        private readonly HashSet<PhotoGroup> photoGroups;
     }
 }

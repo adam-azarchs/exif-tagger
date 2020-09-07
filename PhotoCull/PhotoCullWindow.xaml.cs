@@ -69,6 +69,7 @@ namespace PhotoCull {
             try {
                 if ((dialog.ShowDialog(this) ?? false) && dialog.FileNames.Length > 0) {
                     var names = dialog.FileNames;
+                    using var refresh = this.photoList.GroupedPhotos.RefreshWhenDone();
                     if (names.Length == 1 && names[0].EndsWith(".txt")) {
                         string[] lines;
                         try {
@@ -85,15 +86,24 @@ namespace PhotoCull {
                         }
                         int start = 0;
                         PhotoGroup? group = null;
+                        int order = this.Photos.Count > 0 ? this.Photos.Max(p => p.Group.Order) : 0;
                         for (int i = 0; i < lines.Length; i++) {
                             var line = lines[i];
                             if (line.StartsWith("#")) {
                                 if (start < i) {
+                                    if (i == start + 1) {
+                                        if (group == null) {
+                                            group = new PhotoGroup {
+                                                Order = order
+                                            };
+                                        }
+                                        group.Order += lines.Length;
+                                    }
                                     addImages(
                                         new ArraySegment<string>(lines, start, i - start),
                                         group);
                                     group = new PhotoGroup {
-                                        Order = this.Photos.Max(p => p.Group.Order) + 1
+                                        Order = ++order
                                     };
                                 }
                                 start = i + 1;
@@ -103,6 +113,9 @@ namespace PhotoCull {
                             addImages(
                                 new ArraySegment<string>(lines, start, lines.Length - start),
                                 group);
+                        }
+                        if (group != null) {
+                            SortByGroup(Photos);
                         }
                     } else {
                         addImages(names);
@@ -141,16 +154,19 @@ namespace PhotoCull {
                     ++i;
                 }
             }
-            foreach (var filename in photoSet) {
-                var photo = new Photo(filename);
-                if (group != null) {
-                    photo.Group = group;
+            foreach (var filename in photos) {
+                if (!photoSet.Contains(filename)) {
+                    continue;
                 }
+                var photo = new Photo(filename);
                 loader.EnqueueLoad(photo, this.Photos);
                 if (firstMarked >= 0) {
                     this.Photos.Insert(firstMarked++, photo);
                 } else {
                     this.Photos.Add(photo);
+                }
+                if (group != null) {
+                    photo.Group = group;
                 }
             }
         }
@@ -255,26 +271,14 @@ namespace PhotoCull {
             }
             var good = first ? secondZoom.Photo : firstZoom.Photo;
             var reject = first ? firstZoom.Photo : secondZoom.Photo;
+            Task? logTask = null;
             if (debugging()) {
-                Directory.CreateDirectory(Settings.Default.DebugDest);
-                var rname = debugName(reject.FileName);
-                var gname = debugName(good.FileName);
-                if (!File.Exists(gname)) {
-                    await good.Commit(destination: gname);
-                }
-                if (!File.Exists(rname)) {
-                    await reject.Commit(destination: rname);
-                }
-                File.AppendAllText(debugDataName(reject.FileName),
-                    $"compared {{\n" +
-                    $"  better: \"{Path.GetFileName(gname)}\"\n" +
-                    $"  worse: \"{Path.GetFileName(rname)}\"\n" +
-                    $"}}\n");
+                logTask = logReject(good, reject);
             }
+            using var refresh = this.photoList.GroupedPhotos.RefreshWhenDone();
             photos.Move(photos.IndexOf(reject), photos.Count - 1);
             reject.MarkedForDeletion = true;
             good.MarkedForDeletion = false;
-            reject.Uncache();
             var goodIndex = photos.IndexOf(good);
             if (photos.Any(p => p != good && p.Group == good.Group && !p.MarkedForDeletion)) {
                 if (goodIndex != 0) {
@@ -299,9 +303,32 @@ namespace PhotoCull {
                 }
             }
             SortByGroup(photos);
-            this.deleteButton.IsEnabled = true;
+            if (logTask != null) {
+                await logTask;
+            }
             this.photoList.SelectedValue = null;
+            if (photos.Count > 2) {
+                reject.Uncache();
+            }
+            this.deleteButton.IsEnabled = true;
             this.prefetch();
+        }
+
+        private async Task logReject(Photo good, Photo reject) {
+            Directory.CreateDirectory(Settings.Default.DebugDest);
+            var rname = debugName(reject.FileName);
+            var gname = debugName(good.FileName);
+            if (!File.Exists(gname)) {
+                await good.Commit(destination: gname);
+            }
+            if (!File.Exists(rname)) {
+                await reject.Commit(destination: rname);
+            }
+            File.AppendAllText(debugDataName(reject.FileName),
+                $"compared {{\n" +
+                $"  better: \"{Path.GetFileName(gname)}\"\n" +
+                $"  worse: \"{Path.GetFileName(rname)}\"\n" +
+                $"}}\n");
         }
 
         private async void onDistinctFirst(object sender, RoutedEventArgs e) {
@@ -319,21 +346,11 @@ namespace PhotoCull {
             }
             var keep = moveFirst ? secondZoom.Photo : firstZoom.Photo;
             var move = moveFirst ? firstZoom.Photo : secondZoom.Photo;
+            Task? logTask = null;
             if (debugging()) {
-                var kname = debugName(keep.FileName);
-                var nname = debugName(move.FileName);
-                if (!File.Exists(kname)) {
-                    await keep.Commit(destination: kname);
-                }
-                if (!File.Exists(nname)) {
-                    await move.Commit(destination: nname);
-                }
-                File.AppendAllText(debugDataName(move.FileName),
-                    $"distinct {{\n" +
-                    $"  image: \"{Path.GetFileName(kname)}\"\n" +
-                    $"  image: \"{Path.GetFileName(nname)}\"\n" +
-                    $"}}\n");
+                logTask = logDistinct(keep, move);
             }
+            using var refresh = this.photoList.GroupedPhotos.RefreshWhenDone();
             keep.MarkedForDeletion = false;
             move.MarkedForDeletion = false;
             // Check if the kept one was actually the last one in the group, in
@@ -400,7 +417,26 @@ namespace PhotoCull {
 
             this.deleteButton.IsEnabled = photos.Any(p => p.MarkedForDeletion);
             this.photoList.SelectedValue = null;
+            if (logTask != null) {
+                await logTask;
+            }
             this.prefetch();
+        }
+
+        private async Task logDistinct(Photo keep, Photo move) {
+            var kname = debugName(keep.FileName);
+            var nname = debugName(move.FileName);
+            if (!File.Exists(kname)) {
+                await keep.Commit(destination: kname);
+            }
+            if (!File.Exists(nname)) {
+                await move.Commit(destination: nname);
+            }
+            File.AppendAllText(debugDataName(move.FileName),
+                $"distinct {{\n" +
+                $"  image: \"{Path.GetFileName(kname)}\"\n" +
+                $"  image: \"{Path.GetFileName(nname)}\"\n" +
+                $"}}\n");
         }
 
         private static PhotoGroup getNewGroup(ObservableCollection<Photo> photos, Photo move) {
@@ -416,25 +452,33 @@ namespace PhotoCull {
             if (photos.Count < 2) {
                 return;
             }
-            var groupCounts = new Dictionary<PhotoGroup, int>();
-            foreach (var p in photos) {
-                groupCounts.TryGetValue(p.Group, out int count);
-                if (!p.MarkedForDeletion) {
-                    ++count;
+            var groups = new SortedList<ValueTuple<int, PhotoGroup>, List<int>>();
+            for (int i = 0; i < photos.Count; ++i) {
+                var p = photos[i];
+                var g = new ValueTuple<int, PhotoGroup>(p.MarkedForDeletion ? 2 : 0, p.Group);
+                if (!groups.TryGetValue(g, out var items)) {
+                    items = new List<int>(photos.Count - i);
+                    groups[g] = items;
                 }
-                groupCounts[p.Group] = count;
+                items.Add(i);
             }
-            var newPhotos = photos.Select((ph, index) => (ph, index))
-                .OrderBy(pi => (pi.ph.MarkedForDeletion ? 2 : 0) + (groupCounts[pi.ph.Group] > 1 ? 0 : 1))
-                .ThenBy(pi => pi.ph.Group.Order)
-                .ThenBy(pi => pi.index)
-                .Select(pi => pi.index).ToArray();
-            for (int i = 0; i < newPhotos.Length; ++i) {
+            var newPhotos = new List<int>(photos.Count);
+            var singularPhotos = new List<int>(photos.Count);
+            var delPhotos = new List<int>(photos.Count);
+            var singularDelPhotos = new List<int>(photos.Count);
+            foreach (var group in groups) {
+                var list = (group.Value.Count > 1) ? (group.Key.Item1 == 0 ? newPhotos : delPhotos) : (group.Key.Item1 == 0 ? singularPhotos : singularDelPhotos);
+                list.AddRange(group.Value);
+            }
+            newPhotos.AddRange(singularPhotos);
+            newPhotos.AddRange(delPhotos);
+            newPhotos.AddRange(singularDelPhotos);
+            for (int i = 0; i < newPhotos.Count; ++i) {
                 if (newPhotos[i] != i) {
                     Contract.Assert(newPhotos[i] > i);
                     photos.Move(newPhotos[i], i);
                     // This invalidates the source indicies for subsequent photos.
-                    for (int j = i + 1; j < newPhotos.Length; ++j) {
+                    for (int j = i + 1; j < newPhotos.Count; ++j) {
                         if (newPhotos[j] < newPhotos[i]) {
                             ++newPhotos[j];
                         }
@@ -452,7 +496,9 @@ namespace PhotoCull {
                 files.Length == 0) {
                 return;
             }
-            addImages(files);
+            using (this.photoList.GroupedPhotos.RefreshWhenDone()) {
+                addImages(files);
+            }
         }
 
         private void onSelectionChanged(object sender, SelectionChangedEventArgs e) {

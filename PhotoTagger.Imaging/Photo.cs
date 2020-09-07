@@ -312,7 +312,11 @@ namespace PhotoTagger.Imaging {
         /// </summary>
         public PhotoGroup Group {
             get { return (PhotoGroup)GetValue(GroupProperty); }
-            set { SetValue(GroupProperty, value); }
+            set {
+                SetValue(GroupProperty, value);
+                //this.PropertyChanged?.Invoke(this,
+                //    new PropertyChangedEventArgs(nameof(Group)));
+            }
         }
 
         public static readonly DependencyProperty GroupProperty =

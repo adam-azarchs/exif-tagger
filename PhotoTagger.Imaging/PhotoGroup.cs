@@ -4,7 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace PhotoTagger.Imaging {
-    public sealed class PhotoGroup : INotifyPropertyChanged, IComparable, IComparable<PhotoGroup> {
+    public sealed class PhotoGroup : INotifyPropertyChanged,
+        IComparable, IComparable<PhotoGroup> {
         public int Order {
             get => order;
             set {
