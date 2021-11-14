@@ -84,9 +84,6 @@ namespace PhotoTagger.Imaging {
             "/app1/ifd/{ushort=40093}",
         };
 
-        private static readonly ReadOnlyCollection<string> EmptyStringCollection =
-            new ReadOnlyCollection<string>(new string[] { });
-
         #endregion
 
         #region field readers
@@ -175,8 +172,7 @@ namespace PhotoTagger.Imaging {
         }
 
         public static Rotation OrienationToRotation(short orienation) {
-            return orienation switch
-            {
+            return orienation switch {
                 1 => Rotation.Rotate0,
                 3 => Rotation.Rotate180,
                 6 => Rotation.Rotate90,
@@ -236,7 +232,8 @@ namespace PhotoTagger.Imaging {
                     Encoding.Default.GetString(bytes)
                 });
             } else {
-                dest.Author = EmptyStringCollection;
+                dest.Author = new ReadOnlyCollection<string>(
+                    new string[] { string.Empty });
                 foreach (var query in AuthorRemoveQueries) {
                     dest.RemoveQuery(query);
                 }

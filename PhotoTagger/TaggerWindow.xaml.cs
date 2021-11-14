@@ -159,7 +159,17 @@ namespace PhotoTagger {
         }
 
         private async void commitAll() {
-            await Task.WhenAll(this.Photos.Select(p => p.Commit()).ToArray());
+            try {
+                await Task.WhenAll(this.Photos.Select(p => p.Commit()).ToArray());
+            } catch (Exception ex) {
+                await this.Dispatcher.InvokeAsync(() => {
+                    MessageBox.Show(
+                        $"Error committing metadata edits: {ex.Message}",
+                        "Save Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                });
+            }
         }
 
         private void onFilesDrop(object sender, DragEventArgs e) {

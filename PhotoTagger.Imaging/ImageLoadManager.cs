@@ -277,9 +277,18 @@ namespace PhotoTagger.Imaging {
                 newSource = await reloadAndSave(photo, destination != null, tempFile);
             } catch (ImageLoadException ex) {
                 await photo.Dispatcher.InvokeAsync(() => {
-                    MessageBox.Show("Invalid image data",
-                        string.Format($"Image {photo.FileName} {ex.Message}.",
-                            photo.FileName),
+                    MessageBox.Show(
+                        $"Image {photo.FileName} {ex.Message}",
+                        "Invalid image data",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                });
+                return;
+            } catch (Exception ex) {
+                await photo.Dispatcher.InvokeAsync(() => {
+                    MessageBox.Show(
+                        $"Image {photo.FileName} {ex.Message}",
+                        "Unknown Image Data Problem",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
@@ -323,31 +332,33 @@ namespace PhotoTagger.Imaging {
             using var stream = new UnsafeMemoryMapStream(
                 mmap.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read),
                 FileAccess.Read);
-            BitmapEncoder encoder;
-            Photo.Metadata newMetadata;
-            {
-                (var sourceFrame, var format) = loadFrame(stream.Stream);
-                BitmapMetadata md = (BitmapMetadata)sourceFrame.Metadata.Clone();
-                newMetadata = await Exif.SetMetadata(photo, md);
-                newMetadata.Width = sourceFrame.PixelWidth;
-                newMetadata.Height = sourceFrame.PixelHeight;
-                encoder = forceJpeg ?
-                    new JpegBitmapEncoder() :
-                    BitmapEncoder.Create(format);
-                encoder.Frames.Add(
-                    BitmapFrame.Create(
-                        sourceFrame,
-                        null,
-                        md,
-                        sourceFrame.ColorContexts));
-                if (encoder is JpegBitmapEncoder jpg) {
-                    jpg.Rotation = Exif.SaveRotation(md);
-                }
-            }
-            using (var outFile = new FileStream(destFile, FileMode.CreateNew)) {
+            (BitmapEncoder encoder, Photo.Metadata newMetadata) = await makeEncoder(photo, forceJpeg, stream);
+            using (var outFile = new FileStream(destFile, FileMode.CreateNew, FileAccess.Write)) {
                 encoder.Save(outFile);
             }
             return newMetadata;
+        }
+
+        private static async Task<ValueTuple<BitmapEncoder, Photo.Metadata>> makeEncoder(
+            Photo photo, bool forceJpeg, UnsafeMemoryMapStream stream) {
+            (var sourceFrame, var format) = loadFrame(stream.Stream);
+            BitmapMetadata md = (BitmapMetadata)sourceFrame.Metadata.Clone();
+            Photo.Metadata newMetadata = await Exif.SetMetadata(photo, md);
+            newMetadata.Width = sourceFrame.PixelWidth;
+            newMetadata.Height = sourceFrame.PixelHeight;
+            BitmapEncoder encoder = forceJpeg ?
+                new JpegBitmapEncoder() :
+                BitmapEncoder.Create(format);
+            encoder.Frames.Add(
+                BitmapFrame.Create(
+                    sourceFrame,
+                    null,
+                    md,
+                    sourceFrame.ColorContexts));
+            if (encoder is JpegBitmapEncoder jpg) {
+                jpg.Rotation = Exif.SaveRotation(md);
+            }
+            return (encoder, newMetadata);
         }
 
         private static ValueTuple<BitmapFrame, Guid> loadFrame(Stream stream) {

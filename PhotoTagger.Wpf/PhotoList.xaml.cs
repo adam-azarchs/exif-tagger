@@ -78,11 +78,13 @@ namespace PhotoTagger.Wpf {
             OnSelectionChanged?.Invoke(sender, e);
         }
 
-        private void onSelectedForcedChange(object sender, NotifyCollectionChangedEventArgs e) {
+        private void onSelectedForcedChange(object? sender, NotifyCollectionChangedEventArgs e) {
             if (e.Action == NotifyCollectionChangedAction.Remove &&
                 this.SelectionMode == SelectionMode.Multiple) {
-                foreach (var item in e.OldItems) {
-                    this.ListBox.SelectedItems.Remove(item);
+                if (e.OldItems != null) {
+                    foreach (var item in e.OldItems) {
+                        this.ListBox.SelectedItems.Remove(item);
+                    }
                 }
             }
             // TODO: support other modification types.

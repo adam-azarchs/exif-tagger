@@ -13,7 +13,7 @@ namespace PhotoTagger.Tests {
             Assert.AreEqual("10.2, 45.016666666", result.ToString());
             Assert.IsTrue(GpsLocation.TryParse("10.2N,45.238", out result));
             Assert.AreEqual("10.2, 45.238", result.ToString());
-            Assert.IsTrue(GpsLocation.TryParse("10.2,45.238E", out result));
+            Assert.IsTrue(GpsLocation.TryParse("10.2,45.238fE", out result));
             Assert.AreEqual("10.2, 45.238", result.ToString());
             Assert.IsTrue(GpsLocation.TryParse("10.256456456894N,45.238E", out result));
             Assert.AreEqual("10.256456456894, 45.238", result.ToString());

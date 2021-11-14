@@ -235,7 +235,7 @@ namespace PhotoTagger.Wpf {
             }
         }
 
-        private void imageUpdated(object sender, PropertyChangedEventArgs e) {
+        private void imageUpdated(object? sender, PropertyChangedEventArgs e) {
             if (e.PropertyName == nameof(Photo.FullImage)) {
                 this.computeTransform();
             }
