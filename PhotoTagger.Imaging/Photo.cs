@@ -4,12 +4,14 @@ using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.Caching;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace PhotoTagger.Imaging {
+    [SupportedOSPlatform("windows")]
     public class Photo : DependencyObject, INotifyPropertyChanged, IDisposable {
         public Photo(string f) {
             this.FileName = f;
@@ -20,7 +22,7 @@ namespace PhotoTagger.Imaging {
 
         private int fullIsLoading = 0;
 
-        private static readonly CacheItemPolicy CachePolicy = new CacheItemPolicy() {
+        private static readonly CacheItemPolicy CachePolicy = new() {
             SlidingExpiration = TimeSpan.FromSeconds(15),
         };
 
@@ -275,7 +277,7 @@ namespace PhotoTagger.Imaging {
         private static string firstLine(string text) {
             var i = text.IndexOf('\n');
             if (i >= 0) {
-                return text.Substring(0, i);
+                return text[..i];
             } else {
                 return text;
             }
@@ -342,7 +344,7 @@ namespace PhotoTagger.Imaging {
         // Memory map of the source image file.
         internal MemoryMappedFile? mmap;
         internal UnsafeMemoryMapStream? fullImageStream;
-        internal readonly SemaphoreSlim loadLock = new SemaphoreSlim(1, 1);
+        internal readonly SemaphoreSlim loadLock = new(1, 1);
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

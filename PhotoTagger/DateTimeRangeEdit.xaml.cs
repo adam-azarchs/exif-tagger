@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,6 +12,7 @@ namespace PhotoTagger {
     /// <summary>
     /// Interaction logic for DateTimeRangeEdit.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class DateTimeRangeEdit : UserControl {
         public DateTimeRangeEdit() {
             if (PhotoSet is INotifyCollectionChanged oc) {

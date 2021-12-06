@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +17,7 @@ namespace PhotoCull {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class PhotoCullWindow : Window {
         public PhotoCullWindow() {
             InitializeComponent();
@@ -130,7 +132,7 @@ namespace PhotoCull {
             }
         }
 
-        private readonly ImageLoadManager loader = new ImageLoadManager() {
+        private readonly ImageLoadManager loader = new() {
             ThumbnailHeight = Settings.Default.ThumbnailHeight
         };
 
@@ -222,7 +224,7 @@ namespace PhotoCull {
             this.deleteButton.IsEnabled = false;
         }
 
-        private string debugName(string fileName) {
+        private static string debugName(string fileName) {
             string dirname;
             if (Path.IsPathRooted(Settings.Default.DebugDest)) {
                 dirname = Settings.Default.DebugDest;
@@ -237,7 +239,7 @@ namespace PhotoCull {
                 Path.GetFileNameWithoutExtension(fileName) + ".jpg");
         }
 
-        private string debugDataName(string fileName) {
+        private static string debugDataName(string fileName) {
             if (Path.IsPathRooted(Settings.Default.DebugDest)) {
                 return Path.Combine(Settings.Default.DebugDest,
                     "compare.pbtxt");
@@ -322,7 +324,7 @@ namespace PhotoCull {
             this.prefetch();
         }
 
-        private async Task logReject(Photo good, Photo reject) {
+        private static async Task logReject(Photo good, Photo reject) {
             Directory.CreateDirectory(Settings.Default.DebugDest);
             var rname = debugName(reject.FileName);
             var gname = debugName(good.FileName);
@@ -513,7 +515,7 @@ namespace PhotoCull {
         }
 
         private void onFilesDrop(object sender, DragEventArgs e) {
-            if (!(e.Data.GetData(DataFormats.FileDrop) is string[] files) ||
+            if (e.Data.GetData(DataFormats.FileDrop) is not string[] files ||
                 files.Length == 0) {
                 return;
             }

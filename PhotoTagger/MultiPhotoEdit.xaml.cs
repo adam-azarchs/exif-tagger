@@ -1,5 +1,6 @@
 ﻿using PhotoTagger.Imaging;
 using System.Collections.ObjectModel;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -7,6 +8,7 @@ namespace PhotoTagger {
     /// <summary>
     /// Interaction logic for MultiPhotoEdit.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class MultiPhotoEdit : UserControl {
         public MultiPhotoEdit() {
             InitializeComponent();

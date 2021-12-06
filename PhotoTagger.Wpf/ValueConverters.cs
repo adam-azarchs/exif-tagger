@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -13,6 +14,7 @@ namespace PhotoTagger.Wpf {
     [ValueConversion(typeof(int), typeof(Visibility))]
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
     [ValueConversion(typeof(int), typeof(bool))]
+    [SupportedOSPlatform("windows")]
     public class ElementCountToVisibilityValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter,
               CultureInfo culture) {
@@ -72,6 +74,7 @@ namespace PhotoTagger.Wpf {
 
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
     [ValueConversion(typeof(int), typeof(bool))]
+    [SupportedOSPlatform("windows")]
     public class AnyToEnabledValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is IReadOnlyList<Photo> photos) {
@@ -89,6 +92,7 @@ namespace PhotoTagger.Wpf {
     }
 
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
+    [SupportedOSPlatform("windows")]
     public class AnyChangedToEnabledValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is IReadOnlyList<Photo> photos) {
@@ -104,6 +108,7 @@ namespace PhotoTagger.Wpf {
     }
 
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(bool))]
+    [SupportedOSPlatform("windows")]
     public class AnyRejectedToEnabledValueConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is IReadOnlyList<Photo> photos) {
@@ -120,11 +125,12 @@ namespace PhotoTagger.Wpf {
 
     [ValueConversion(typeof(Photo), typeof(TextDecorationCollection))]
     [ValueConversion(typeof(bool), typeof(TextDecorationCollection))]
+    [SupportedOSPlatform("windows")]
     public class RejectedToStrikethroughValueConverter : IValueConverter {
         private static readonly TextDecorationCollection EmptyDeco =
-            new TextDecorationCollection();
+            new();
         private static readonly TextDecorationCollection StrikeDeco =
-            new TextDecorationCollection(
+            new(
             new TextDecoration[]{
                 new TextDecoration(
                     TextDecorationLocation.Strikethrough,
@@ -168,6 +174,7 @@ namespace PhotoTagger.Wpf {
     }
 
     [ValueConversion(typeof(IReadOnlyList<Photo>), typeof(DateTimeRange?))]
+    [SupportedOSPlatform("windows")]
     public class PhotosToDateRangeValueConverter : IValueConverter {
         public object? Convert(object value, Type targetType,
             object parameter, CultureInfo culture) {
@@ -186,6 +193,7 @@ namespace PhotoTagger.Wpf {
 
     [ValueConversion(typeof(ObservableCollection<Photo>),
                      typeof(ReadOnlyObservableCollection<Photo>))]
+    [SupportedOSPlatform("windows")]
     public class ObservableCollectionToReadOnlyConverter : IValueConverter {
         public object? Convert(object value, Type targetType,
                               object parameter, CultureInfo culture) {

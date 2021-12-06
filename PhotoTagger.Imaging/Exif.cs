@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace PhotoTagger.Imaging {
+    [SupportedOSPlatform("windows")]
     static class Exif {
 
         private static string toUniversalNewline(string from) {
@@ -154,10 +156,10 @@ namespace PhotoTagger.Imaging {
         }
 
         private static GpsLocation? readLocation(BitmapMetadata metadata) {
-            if (!(metadata.GetQuery(LatitudeRefQuery) is string latSignProp) ||
-                !(metadata.GetQuery(LatitudeQuery) is ulong[] latProp) ||
-                !(metadata.GetQuery(LongitudeRefQuery) is string lonSignProp) ||
-                !(metadata.GetQuery(LongitudeQuery) is ulong[] lonProp)) {
+            if (metadata.GetQuery(LatitudeRefQuery) is not string latSignProp ||
+                metadata.GetQuery(LatitudeQuery) is not ulong[] latProp ||
+                metadata.GetQuery(LongitudeRefQuery) is not string lonSignProp ||
+                metadata.GetQuery(LongitudeQuery) is not ulong[] lonProp) {
                 return null;
             }
             if (latSignProp.Length != 1 || lonSignProp.Length != 1 ||

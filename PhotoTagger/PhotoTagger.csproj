@@ -26,6 +26,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Properties\icon.ico</ApplicationIcon>
+    <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PhotoTagger.Imaging\PhotoTagger.Imaging.csproj" />

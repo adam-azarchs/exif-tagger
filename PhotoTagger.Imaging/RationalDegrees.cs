@@ -40,7 +40,7 @@ namespace PhotoTagger.Imaging {
             }
         }
 
-        public static readonly RationalDegrees Zero = new RationalDegrees(0, 0, 0, 1, 1, 1, 1);
+        public static readonly RationalDegrees Zero = new(0, 0, 0, 1, 1, 1, 1);
 
         public int Sign => sign;
 
@@ -153,7 +153,7 @@ namespace PhotoTagger.Imaging {
 
         public bool IsZero => numerator == 0;
 
-        public static readonly Rational Zero = new Rational(0, 1);
+        public static readonly Rational Zero = new(0, 1);
 
         public static Rational FromDouble(double value) {
             if (double.IsNaN(value)) {

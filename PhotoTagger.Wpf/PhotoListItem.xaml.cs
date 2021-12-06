@@ -1,4 +1,5 @@
 using PhotoTagger.Imaging;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -8,6 +9,7 @@ namespace PhotoTagger.Wpf {
     /// <summary>
     /// Interaction logic for PhotoListItem.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class PhotoListItem : UserControl {
         public PhotoListItem() {
             InitializeComponent();

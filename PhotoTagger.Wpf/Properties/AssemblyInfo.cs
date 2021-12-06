@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -10,6 +11,7 @@ using System.Windows;
 [assembly: AssemblyCompany("Adam Azarchs")]
 [assembly: AssemblyProduct("PhotoTagger")]
 [assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: NeutralResourcesLanguage("en-US")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

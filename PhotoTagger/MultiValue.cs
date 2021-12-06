@@ -34,7 +34,7 @@ namespace PhotoTagger {
         public string Value => this.value;
         public Consistency State => this.state;
 
-        private static readonly MultiString empty = new MultiString("",
+        private static readonly MultiString empty = new("",
             Consistency.Consistent);
 
         public static MultiString FromCollection<T>(
@@ -132,16 +132,12 @@ namespace PhotoTagger {
                     throw new NotSupportedException("Unsupported type.");
                 }
             } else if (value is Consistency state) {
-                switch (state) {
-                    case Consistency.Consistent:
-                        return Brushes.LightGreen;
-                    case Consistency.Inconsistent:
-                        return Brushes.LightCoral;
-                    case Consistency.Changed:
-                        return Brushes.LightCyan;
-                    default:
-                        throw new NotSupportedException("Unsupported state.");
-                }
+                return state switch {
+                    Consistency.Consistent => Brushes.LightGreen,
+                    Consistency.Inconsistent => Brushes.LightCoral,
+                    Consistency.Changed => Brushes.LightCyan,
+                    _ => throw new NotSupportedException("Unsupported state."),
+                };
             } else if (value is string v) {
                 if (targetType == typeof(MultiString)) {
                     return new MultiString(v, Consistency.Changed);

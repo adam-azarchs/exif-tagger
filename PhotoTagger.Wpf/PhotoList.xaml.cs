@@ -1,8 +1,8 @@
 using PhotoTagger.Imaging;
-using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.Contracts;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -11,6 +11,7 @@ namespace PhotoTagger.Wpf {
     /// <summary>
     /// Interaction logic for PhotoList.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class PhotoList : UserControl {
         public PhotoList() {
             InitializeComponent();

@@ -33,6 +33,6 @@ namespace PhotoTagger.Imaging {
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public static readonly PhotoGroup Default = new PhotoGroup();
+        public static readonly PhotoGroup Default = new();
     }
 }

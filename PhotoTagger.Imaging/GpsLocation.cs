@@ -22,7 +22,7 @@ namespace PhotoTagger.Imaging {
         static readonly byte[] East = { (byte)'E', 0 };
         static readonly byte[] West = { (byte)'W', 0 };
 
-        private static readonly Regex LocRegex = new Regex(
+        private static readonly Regex LocRegex = new(
             @"(-?[0-9]+\.?[0-9]*)\s*([nsNS]?)\s*,?\s*(-?[0-9]+\.?[0-9]*)\s*([ewEW]?)",
             RegexOptions.Compiled);
 

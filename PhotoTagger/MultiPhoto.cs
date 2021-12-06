@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
 
 namespace PhotoTagger {
+    [SupportedOSPlatform("windows")]
     public class MultiPhoto : DependencyObject {
         public ReadOnlyObservableCollection<Photo> PhotoSet {
             get {

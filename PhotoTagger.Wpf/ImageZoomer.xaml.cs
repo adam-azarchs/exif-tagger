@@ -2,6 +2,7 @@ using PhotoTagger.Imaging;
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,6 +12,7 @@ namespace PhotoTagger.Wpf {
     /// <summary>
     /// Interaction logic for ImageZoomer.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class ImageZoomer : Border {
         public ImageZoomer() {
             InitializeComponent();

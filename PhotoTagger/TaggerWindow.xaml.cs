@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ namespace PhotoTagger {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public sealed partial class TaggerWindow : Window, IDisposable {
         public TaggerWindow() {
             InitializeComponent();
@@ -118,7 +120,7 @@ namespace PhotoTagger {
             }
         }
 
-        private readonly ImageLoadManager loader = new ImageLoadManager();
+        private readonly ImageLoadManager loader = new();
 
         private void addImages(string[] photos) {
             var photoSet = new HashSet<string>(photos);
@@ -173,7 +175,7 @@ namespace PhotoTagger {
         }
 
         private void onFilesDrop(object sender, DragEventArgs e) {
-            if (!(e.Data.GetData(DataFormats.FileDrop) is string[] files) ||
+            if (e.Data.GetData(DataFormats.FileDrop) is not string[] files ||
                 files.Length == 0) {
                 return;
             }

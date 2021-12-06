@@ -2,16 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows.Data;
 
 namespace PhotoTagger.Imaging {
     /// <summary>
     /// Grouping and sorting logic for a collection of photos.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class GroupedPhotosView : ListCollectionView {
         private class GroupedPhotosDescription : GroupDescription {
             public GroupedPhotosDescription(ObservableCollection<Photo> source) {
@@ -45,10 +45,10 @@ namespace PhotoTagger.Imaging {
             }
 
             private struct sorter : IComparer, IComparer<Photo>, IComparer<ValueTuple<int, PhotoGroup>> {
-                private readonly ObservableCollection<Photo> ItemsSource;
+                private readonly ObservableCollection<Photo> itemsSource;
 
                 public sorter(ObservableCollection<Photo> source) {
-                    this.ItemsSource = source;
+                    this.itemsSource = source;
                 }
 
                 public int Compare(object? x, object? y) {
@@ -76,7 +76,7 @@ namespace PhotoTagger.Imaging {
                     } else if (y == null) {
                         return -1;
                     }
-                    return ItemsSource.IndexOf(x).CompareTo(ItemsSource.IndexOf(y));
+                    return itemsSource.IndexOf(x).CompareTo(itemsSource.IndexOf(y));
                 }
 
                 public int Compare((int, PhotoGroup) x, (int, PhotoGroup) y) {

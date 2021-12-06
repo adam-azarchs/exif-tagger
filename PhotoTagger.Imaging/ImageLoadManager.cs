@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,6 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace PhotoTagger.Imaging {
+    [SupportedOSPlatform("windows")]
     public sealed class ImageLoadManager : IDisposable {
 
         /// <summary>
@@ -31,10 +33,10 @@ namespace PhotoTagger.Imaging {
         }
 
         private readonly BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>> metadataReads =
-            new BlockingCollection<Tuple<Photo, ObservableCollection<Photo>>>();
+            new();
 
         private readonly BlockingCollection<Tuple<Photo, Photo.Metadata>> fullsizeReads =
-            new BlockingCollection<Tuple<Photo, Photo.Metadata>>();
+            new();
 
         private static readonly int MaxIOThreads = Math.Min(Environment.ProcessorCount, 3);
         private int runningIOThreads = 0;
@@ -112,7 +114,7 @@ namespace PhotoTagger.Imaging {
                             if (frames.Count < 1) {
                                 throw new ArgumentException("Image contained no frame data.", nameof(photo));
                             }
-                            if (!(frames[0].Metadata is BitmapMetadata imgMeta)) {
+                            if (frames[0].Metadata is not BitmapMetadata imgMeta) {
                                 throw new NullReferenceException("Image contained no metadata");
                             }
                             metadata = Exif.GetMetadata(imgMeta);

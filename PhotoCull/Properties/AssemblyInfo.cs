@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -11,6 +12,7 @@ using System.Windows;
 [assembly: AssemblyProduct("PhotoCull")]
 [assembly: AssemblyCopyright("Copyright © 2018")]
 [assembly: AssemblyCulture("")]
+[assembly: NeutralResourcesLanguage("en-US")]
 
 [assembly: ComVisible(false)]
 
